@@ -11,10 +11,8 @@ func NewDictWord(words ...string) DictWords {
 }
 
 type Dictionary struct {
-	scanLevel int
-	badWords  DictWords
-
-	stops DictWords
+	badWords DictWords
+	stops    DictWords
 }
 
 func New() *Dictionary {
@@ -25,10 +23,6 @@ func New() *Dictionary {
 	}
 
 	return newDict
-}
-
-func (d *Dictionary) SetScanLevel(level int) {
-	d.scanLevel = level
 }
 
 func (d *Dictionary) AddWords(words ...string) {
@@ -68,4 +62,16 @@ func (d *Dictionary) DelStopWords(words ...string) {
 	for _, w := range words {
 		delete(d.stops, w)
 	}
+}
+
+func (d *Dictionary) GetDict() DictWords {
+	return d.badWords
+}
+
+func (d *Dictionary) IsStopWord(s string) bool {
+	if _, ok := d.stops[s]; ok {
+		return true
+	}
+
+	return false
 }
