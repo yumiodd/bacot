@@ -1,22 +1,27 @@
 package bacot
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
-func TestBacot(t *testing.T) {
+func TestBacotSingleWord(t *testing.T) {
 
-	text := "maling kundang"
+	startTime := time.Now()
+	b := New()
+	b.withExactWord = false
+	r := b.Scan("babi")
+	endTime := time.Now()
+	f := endTime.Sub(startTime)
+	fmt.Println("time:", f.String())
 
-	bacot := New()
-
-	tokens := bacot.Tokenizer(text)
-
-	if tokens[0] != "maling" {
-		t.Error("failet")
+	if len(r.Words) == 0 {
+		t.Fatal("expect found word but result none")
 	}
-	if tokens[1] != "kundang" {
-		t.Error("failet")
-	}
 
+	if r.Words[0].Word != "babi" {
+		t.Fatal("expect found 'babi' but result ", r.Words[0].Word)
+		return
+	}
 }

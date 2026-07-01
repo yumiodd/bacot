@@ -1,11 +1,11 @@
-package detector
+package bacot
 
 import (
 	"html"
 	"strings"
 )
 
-func (d *Detector) Tokenizer(text string) []string {
+func (b *Bacot) Tokenizer(text string) []string {
 
 	text = strings.ToLower(text)
 	text = html.UnescapeString(text)

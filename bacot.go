@@ -1,30 +1,70 @@
 package bacot
 
 import (
-	"bacot/dictionary"
-	"bacot/internal/core/detector"
+	"maps"
+	"slices"
 )
 
 type Bacot struct {
-	dictionary *dictionary.Dictionary
-	detector   *detector.Detector
+	// scan behavior
+	withStemming  bool
+	withQuickScan bool
+	withTrimSpace bool
+	withExactWord bool // if false then it become very sensitive
+	withCompound  bool
+	withLeetSpeak bool
+
+	// modal scanning
+	minChar     int
+	maxChar     int
+	commonFound int
+	wordCount   []int
+
+	Dict *Dictionary
 }
 
 func New() *Bacot {
-	bacot := &Bacot{dictionary: dictionary.New()}
-	bacot.detector = detector.New(bacot.dictionary)
-	return bacot
 
-}
+	new := &Bacot{
+		withStemming:  true,
+		withQuickScan: true,
+		withTrimSpace: false,
+		withExactWord: true,
+		withCompound:  false,
+		Dict:          NewDictionary(),
+	}
 
-func (b *Bacot) Tokenizer(text string) []string {
-	return b.detector.Tokenizer(text)
-}
+	var wordCount = map[int]int{}
+	new.minChar = 99999
+	for _, word := range slices.Collect(maps.Keys(new.Dict.badWords)) {
+		lw := len(word)
+		if lw > new.maxChar {
+			new.maxChar = lw
+		}
+		if lw < new.minChar {
+			new.minChar = lw
+		}
 
-func (b *Bacot) IsToxic(s string) bool {
-	return b.detector.Scan(s)
-}
+		_, ok := wordCount[lw]
+		if ok {
+			wordCount[lw] += 1
+		} else {
+			wordCount[lw] = 1
+		}
+	}
 
-func (b *Bacot) WithCompound(compound bool) {
-	b.detector.WithCompound = compound
+	common := 0
+	maxCount := 0
+	for k, v := range wordCount {
+		if v > maxCount {
+			common = k
+			maxCount = v
+		}
+	}
+	new.wordCount = slices.Collect(maps.Keys(wordCount))
+	slices.Sort(new.wordCount)
+	new.commonFound = common
+
+	return new
+
 }

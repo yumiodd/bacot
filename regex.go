@@ -1,4 +1,4 @@
-package detector
+package bacot
 
 // source: https://github.com/truthfulses/go-sastrawi/blob/master/regex.go
 

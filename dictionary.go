@@ -1,4 +1,4 @@
-package dictionary
+package bacot
 
 type DictWords = map[string]struct{}
 
@@ -15,7 +15,7 @@ type Dictionary struct {
 	stops    DictWords
 }
 
-func New() *Dictionary {
+func NewDictionary() *Dictionary {
 
 	newDict := &Dictionary{
 		badWords: NewDictWord(badwords...),

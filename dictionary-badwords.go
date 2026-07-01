@@ -1,4 +1,4 @@
-package dictionary
+package bacot
 
 // source: https://github.com/drizki/indonesian-badwords/blob/main/src/dict.json
 

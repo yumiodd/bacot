@@ -1,4 +1,4 @@
-package dictionary
+package bacot
 
 // source: https://github.com/truthfulses/go-sastrawi/blob/master/dictionary-stopword.go
 
