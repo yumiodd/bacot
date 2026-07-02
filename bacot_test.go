@@ -1,10 +1,11 @@
 package bacot
 
 import (
-	bacot "bacot/src"
 	"fmt"
 	"testing"
 	"time"
+
+	bacot "github.com/yumiodd/bacot/src"
 )
 
 func SpeedTest(f func() *bacot.Result) *bacot.Result {
