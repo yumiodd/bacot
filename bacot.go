@@ -100,10 +100,10 @@ func (b *Bacot) WithTrimSpace() *Bacot {
 }
 
 func (b *Bacot) WithQuickScan() *Bacot {
-	b.withCompound = true
+	b.withCompound = false
 	return b
 }
 func (b *Bacot) WithCompound() *Bacot {
-	b.withCompound = false
+	b.withCompound = true
 	return b
 }

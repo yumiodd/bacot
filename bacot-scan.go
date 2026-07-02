@@ -72,7 +72,7 @@ func (b *Bacot) scanning(s string) *Result {
 
 				// if using trim space,
 				// even if you use a word whose value s is already free of space characters, it is handled by func Scan() above
-				if !(b.withExactWord) {
+				if !(b.withExactWord) && word[0] != ' ' {
 					word = strings.ReplaceAll(word, " ", "")
 				}
 

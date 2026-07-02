@@ -59,8 +59,8 @@ func SpeedTest(f func() *Result) *Result {
 func TestBacotExactWord(t *testing.T) {
 
 	r := SpeedTest(func() *Result {
-		b := New().WithTrimSpace().WithQuickScan()
-		return b.Scan("babi halo anjing bangsat")
+		b := New().WithTrimSpace().WithCompound()
+		return b.Scan("ba bi ")
 	})
 
 	fmt.Println("dari r:", r.Words[0].Word)
