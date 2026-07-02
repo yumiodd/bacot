@@ -1,12 +1,13 @@
 package bacot
 
 import (
+	bacot "bacot/src"
 	"fmt"
 	"testing"
 	"time"
 )
 
-func SpeedTest(f func() *Result) *Result {
+func SpeedTest(f func() *bacot.Result) *bacot.Result {
 	startTime := time.Now()
 	r := f()
 	endTime := time.Now()
@@ -58,9 +59,9 @@ func SpeedTest(f func() *Result) *Result {
 
 func TestSpotLight(t *testing.T) {
 
-	r := SpeedTest(func() *Result {
-		b := New().WithTrimSpace().WithCompound()
-		return b.Scan("asdfbb ab i___")
+	r := SpeedTest(func() *bacot.Result {
+		b := bacot.New().WithTrimSpace().WithCompound()
+		return b.Scan("asdfbb ab Iadsfasdf")
 	})
 
 	fmt.Println("dari r:", r.SpotLight())
