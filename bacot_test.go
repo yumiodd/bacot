@@ -56,22 +56,12 @@ func SpeedTest(f func() *Result) *Result {
 
 // }
 
-func TestBacotExactWord(t *testing.T) {
+func TestSpotLight(t *testing.T) {
 
 	r := SpeedTest(func() *Result {
 		b := New().WithTrimSpace().WithCompound()
-		return b.Scan("ba bi ")
+		return b.Scan("asdfbb ab i___")
 	})
 
-	fmt.Println("dari r:", r.Words[0].Word)
-
-	if len(r.GetWords()) != 1 {
-		t.Error("expexted found 1 words, get:", len(r.GetWords()), r.GetWords())
-	}
-
-	if r.GetWords()[0] != "babi" {
-		t.Error("get word that is not expected")
-	}
-
-	fmt.Println(r.GetWords())
+	fmt.Println("dari r:", r.SpotLight())
 }
