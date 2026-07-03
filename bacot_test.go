@@ -61,8 +61,8 @@ func SpeedTest(f func() *bacot.Result) *bacot.Result {
 func TestSpotLight(t *testing.T) {
 
 	r := SpeedTest(func() *bacot.Result {
-		b := bacot.New().WithTrimSpace().WithCompound()
-		return b.Scan("asdfbb ab Iadsfasdf")
+		b := bacot.New().WithCompound().WithExactWord()
+		return b.Scan("asbdfa asu Bapak Kau Anjing")
 	})
 
 	fmt.Println("dari r:", r.SpotLight())

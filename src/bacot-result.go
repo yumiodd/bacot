@@ -21,7 +21,7 @@ func (r *Result) Censor() string {
 
 	st := []rune(r.Text)
 	for _, w := range r.Words {
-		for i := w.Start; i < w.End; i++ {
+		for i := w.Start; i <= w.End; i++ {
 			if st[i] == ' ' {
 				continue
 			}
@@ -83,7 +83,7 @@ func (r *Result) SpotLight() string {
 
 	res := []rune(sb.String())
 	for _, w := range r.Words {
-		for i := w.Start; i < w.End; i++ {
+		for i := w.Start; i <= w.End; i++ {
 			res[i] = rune(r.Text[i])
 		}
 	}
