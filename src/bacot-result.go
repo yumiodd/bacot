@@ -17,6 +17,12 @@ func (wig *WordIndexGenerator) Yield() *WordIndex {
 	if len(wig.buff) == 0 {
 		return nil
 	}
+
+	// fallback for out of range index
+	if wig.cur > len(wig.buff)-1 {
+		return &WordIndex{}
+	}
+
 	wig.cur++
 	return wig.buff[wig.cur]
 }
@@ -106,4 +112,12 @@ func (sr *ScanResult) GetFoundWord() []*WordIndex {
 }
 func (sr *ScanResult) CountFoundWord() int {
 	return len(sr.words)
+}
+
+func (sr *ScanResult) Extract() []string {
+	var words []string
+	for _, w := range sr.words {
+		words = append(words, w.Word)
+	}
+	return words
 }
