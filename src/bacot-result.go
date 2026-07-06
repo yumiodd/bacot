@@ -3,8 +3,6 @@ package bacot
 import "strings"
 
 type WordIndex struct {
-	buff []*WordIndex
-
 	Word  string
 	Start int
 	End   int
@@ -66,10 +64,10 @@ func (sr *ScanResult) CensoredText() string {
 	)
 	for i, c := range sr.text {
 		if _, ok := whiteSpace[c]; ok {
-			sb.WriteRune(s[i-diff])
-		} else {
 			sb.WriteRune(c)
 			diff++
+		} else {
+			sb.WriteRune(s[i-diff])
 		}
 	}
 

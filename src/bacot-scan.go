@@ -78,44 +78,54 @@ func (ms *ModalScan) Scan() *ScanResult {
 }
 
 // Reursive willl scann in sub-string fashion
-// func (ms *ModalScan) RecursiveScan() *ScanResult {
+func (ms *ModalScan) RecursiveScan() *ScanResult {
 
-// 	// This type of scan is easy if you use sanitize space
-// 	temp := ms.withSanitizeSpace
-// 	ms.WithSanitizeSpace(true)
-// 	ms.res.praScanText = ms.generateText()
-// 	s := ms.res.praScanText
-// 	ms.withSanitizeSpace = temp
+	// This type of scan is easy if you use sanitize space
+	temp := ms.withSanitizeSpace
+	ms.WithSanitizeSpace(true)
 
-// 	finished := false
-// 	for l := 0; l <= len(s); l++ {
-// 		if finished {
-// 			break
-// 		}
+	res := &ScanResult{
+		text:        ms.text,
+		praScanText: ms.generateText(),
+	}
 
-// 		sub := s[l:]
-// 		for _, r := range ms.dict.GetWordsLen() {
+	ms.withSanitizeSpace = temp
 
-// 			if r > len(sub) {
-// 				break
-// 			}
+	var (
+		s        = res.praScanText
+		finished = false
+	)
+	for l := 0; l <= len(s); l++ {
+		if finished {
+			break
+		}
 
-// 			word := sub[:r]
+		sub := s[l:]
+		for _, r := range ms.dict.GetWordsLen() {
 
-// 			if ms.dict.Contains(word) {
-// 				ms.res.words = append(ms.res.words, &WordIndex{word, l, l + r - 1})
-// 				if ms.collect {
-// 					break
-// 				}
+			if r > len(sub) {
+				break
+			}
 
-// 				finished = true
-// 			}
-// 		}
-// 	}
+			word := sub[:r]
 
-// 	ms.sb.Reset()
-// 	return nil
-// }
+			if ms.dict.Contains(word) {
+				res.words = append(res.words, &WordIndex{
+					Word:  word,
+					Start: l,
+					End:   l + r - 1})
+
+				if ms.collect {
+					break
+				}
+
+				finished = true
+			}
+		}
+	}
+
+	return res
+}
 
 func (ms *ModalScan) generateText() string {
 

@@ -150,3 +150,67 @@ func TestBacotCensoringResultMultiWord(t *testing.T) {
 		t.Fatalf("expected found \"%s\" got: %s", e, s)
 	}
 }
+
+func TestBacotDetectWithSanitizeWhiteSpace(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text(" a\"su").WithSanitizeSpace(true).Collect(true).Scan()
+
+	n := 1
+	if f := res.CountFoundWord(); f != n {
+		t.Fatalf("expected found %d got: %d", n, f)
+	}
+
+	e := "asu"
+	if f := res.First(); f != e {
+		t.Fatalf("expected found `%s` got: %s", e, f)
+	}
+}
+
+func TestBacotDetectUsingRecursiveScan(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text(" pasu").RecursiveScan()
+
+	expInt := 1
+	if f := res.CountFoundWord(); f != expInt {
+		t.Fatalf("expected found %d got: %d", expInt, f)
+	}
+
+	expStr := "asu"
+	if f := res.First(); f != expStr {
+		t.Fatalf("expected found \"%s\" got: %s", expStr, f)
+	}
+
+	expStr = " p***"
+	if s := res.CensoredText(); s != expStr {
+		t.Fatalf("expected found \"%s\" got: %s", expStr, s)
+	}
+}
+
+func TestBacotDetectUsingRecursiveScanWithCollect(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text(" pasu an jingm babingsa").Collect(true).RecursiveScan()
+
+	expInt := 3
+	if f := res.CountFoundWord(); f != expInt {
+		t.Fatalf("expected found %d got: %d", expInt, f)
+	}
+
+	gen := res.WordGenerator()
+	expStrArr := []string{"asu", "anjing", "babi"}
+	for _, e := range expStrArr {
+		if f := gen.Yield().Word; f != e {
+			t.Fatalf("expected found \"%s\" got: %s", e, f)
+		}
+	}
+
+	expStr := " p*** ** ****m ****ngsa"
+	if s := res.CensoredText(); s != expStr {
+		t.Fatalf("expected found \"%s\" got: %s", expStr, s)
+	}
+}
