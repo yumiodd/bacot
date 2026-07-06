@@ -1,69 +1,152 @@
 package bacot
 
 import (
-	"fmt"
 	"testing"
-	"time"
 
 	bacot "github.com/yumiodd/bacot/src"
 )
 
-func SpeedTest(f func() *bacot.Result) *bacot.Result {
-	startTime := time.Now()
-	r := f()
-	endTime := time.Now()
-	final := endTime.Sub(startTime)
-	fmt.Println("time:", final.String())
-	return r
+func TestBacotDetectInOneWord(t *testing.T) {
+
+	b := bacot.New()
+	res := b.Text("asu").Scan()
+
+	if !res.IsToxic() {
+		t.Fatal("expect toxic")
+	}
+
+	if f := res.CountFoundWord(); f != 1 {
+		t.Fatal("expect found 1 got:", f)
+	}
+
+	if f := res.First(); f != "asu" {
+		t.Fatal("expect 'asu' got: ", f)
+	}
 }
 
-// func TestBacotSingleWord(t *testing.T) {
+func TestBacotDetectOneWordInMultiWord(t *testing.T) {
 
-// 	r := SpeedTest(func() *Result {
-// 		b := New()
-// 		b.withExactWord = false
-// 		return b.Scan("asdfasdfaBabiABdb")
-// 	})
+	b := bacot.New()
 
-// 	if len(r.Words) == 0 {
-// 		t.Fatal("expect found word but result none")
-// 	}
+	res := b.Text("dasar kamu asu ya").Scan()
 
-// 	if r.Words[0].Word != "babi" {
-// 		t.Fatal("expect found 'babi' but result ", r.Words[0].Word)
-// 		return
-// 	}
-// }
+	if !res.IsToxic() {
+		t.Fatal("expect toxic")
+	}
 
-// func TestBacotTrimSpace(t *testing.T) {
+	if f := res.CountFoundWord(); f != 1 {
+		t.Fatal("expect found 1 got:", f)
+	}
 
-// 	r := SpeedTest(func() *Result {
-// 		b := New()
-// 		b.withExactWord = false
-// 		b.withTrimSpace = true
-// 		b.withCompound = true
-// 		return b.Scan("asdfasdfaBa biAdab an jing")
-// 	})
+	if f := res.First(); f != "asu" {
+		t.Fatal("expect 'asu' got: ", f)
+	}
+}
 
-// 	if len(r.Words) == 0 {
-// 		t.Fatal("expect found word but result none")
-// 	}
+func TestBacotNotDetectInOneWord(t *testing.T) {
 
-// 	if r.Words[0].Word != "babi" {
-// 		t.Fatal("expect found 'babi' but result ", r.Words[0].Word)
-// 		return
-// 	}
+	b := bacot.New()
 
-// 	fmt.Println(r.Censor())
+	res := b.Text("hallo").Scan()
 
-// }
+	if res.IsToxic() {
+		t.Fatal("not toxic")
+	}
 
-func TestSpotLight(t *testing.T) {
+	if f := res.CountFoundWord(); f != 0 {
+		t.Fatal("expect found 0 got:", f)
+	}
 
-	r := SpeedTest(func() *bacot.Result {
-		b := bacot.New().WithCompound().WithExactWord()
-		return b.Scan("asbdfa asu Bapak Kau Anjing")
-	})
+	if f := res.First(); f != "" {
+		t.Fatal("expect empty string got: ", f)
+	}
+}
 
-	fmt.Println("dari r:", r.SpotLight())
+func TestBacotNotDetectInOneMultiWords(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("hallo semua nama saya yumi").Scan()
+
+	if res.IsToxic() {
+		t.Fatal("not toxic")
+	}
+
+	if f := res.CountFoundWord(); f != 0 {
+		t.Fatal("expect found 0 got:", f)
+	}
+
+	if f := res.First(); f != "" {
+		t.Fatal("expect empty string got: ", f)
+	}
+}
+
+func TestBacotDetectCollection(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("anjing asu babi puki kimak bajingan").Collect(true).Scan()
+
+	if f := res.CountFoundWord(); f != 6 {
+		t.Fatal("expected found 6 got:", f)
+	}
+
+	var (
+		test = []string{"anjing", "asu", "babi", "puki", "kimak", "bajingan"}
+		gen  = res.WordGenerator()
+	)
+
+	for _, e := range test {
+		g := gen.Yield()
+		if e != g.Word {
+			t.Fatalf("expect word %s got: %s", e, g.Word)
+		}
+	}
+}
+
+func TestBacotDetectOneWordWithSanitizeSpace(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("a su").WithSanitizeSpace(true).Scan()
+
+	if f := res.CountFoundWord(); f != 1 {
+		t.Fatal("expected found 1 got:", f)
+	}
+
+	if f := res.First(); f != "asu" {
+		t.Fatal("expected found `asu` got:", f)
+	}
+}
+
+func TestBacotCensoringResult(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("asu").Scan()
+
+	if f := res.CountFoundWord(); f != 1 {
+		t.Fatal("expected found 1 got:", f)
+	}
+
+	e := "***"
+	if s := res.CensoredText(); s != e {
+		t.Fatalf("expected found \"%s\" got: %s", e, s)
+	}
+}
+
+func TestBacotCensoringResultMultiWord(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("asu anjing babi").Collect(true).Scan()
+
+	if f := res.CountFoundWord(); f != 3 {
+		t.Fatal("expected found 3 got:", f)
+	}
+
+	e := "*** ****** ****"
+	if s := res.CensoredText(); s != e {
+		t.Fatalf("expected found \"%s\" got: %s", e, s)
+	}
 }

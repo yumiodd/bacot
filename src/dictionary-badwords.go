@@ -216,4 +216,5 @@ var badwords = []string{
 
 	// Additional, feel free to add
 	"biadab",
+	"nenen",
 }

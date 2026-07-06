@@ -2,91 +2,110 @@ package bacot
 
 import "strings"
 
-type WordIndext struct {
+type WordIndex struct {
+	buff []*WordIndex
+
 	Word  string
 	Start int
 	End   int
 }
 
-type Result struct {
-	Words []*WordIndext
-	Error error
-	Text  string
+type WordIndexGenerator struct {
+	buff []*WordIndex
+	cur  int
 }
 
-func (r *Result) Censor() string {
-	if len(r.Words) == 0 {
-		return ""
+func (wig *WordIndexGenerator) Yield() *WordIndex {
+	if len(wig.buff) == 0 {
+		return nil
 	}
-
-	st := []rune(r.Text)
-	for _, w := range r.Words {
-		for i := w.Start; i <= w.End; i++ {
-			if st[i] == ' ' {
-				continue
-			}
-
-			st[i] = '*'
-		}
-	}
-
-	return string(st)
+	wig.cur++
+	return wig.buff[wig.cur]
 }
 
-func (r *Result) Extract() []string {
-	if len(r.Words) == 0 {
-		return []string{}
-	}
+type ScanResult struct {
+	specialCharIndex map[int]rune
 
+	// text is the original string of input and will not change
+	// text ini akan di proses dan nilainya di assign ke praScanbaText
+	text string
+
+	// praScanText is the text resulting from the scan process, and this will be used using words
+	praScanText string
+	words       []*WordIndex
+}
+
+func (sr *ScanResult) GetText() string {
+	return sr.text
+}
+
+func (sr *ScanResult) GetDetectWords() []string {
 	var words []string
-	for _, w := range r.Words {
+	for _, w := range sr.words {
 		words = append(words, w.Word)
 	}
 	return words
 }
 
-func (r *Result) Result() *Result {
-	return r
-}
+func (sr *ScanResult) CensoredText() string {
 
-func (r *Result) IsToxic() bool {
-	return len(r.Words) > 0
-}
-
-func (r *Result) First() string {
-	if len(r.Words) > 0 {
-		return r.Words[0].Word
+	s := []rune(sr.praScanText)
+	for _, w := range sr.words {
+		for i := w.Start; i <= w.End; i++ {
+			s[i] = '*'
+		}
 	}
-	return ""
-}
 
-func (r *Result) Last() string {
-	if len(r.Words) > 0 {
-		return r.Words[len(r.Words)-1].Word
+	if sr.text == sr.praScanText {
+		return string(s)
 	}
-	return ""
+
+	var (
+		sb   strings.Builder
+		diff = 0
+	)
+	for i, c := range sr.text {
+		if _, ok := whiteSpace[c]; ok {
+			sb.WriteRune(s[i-diff])
+		} else {
+			sb.WriteRune(c)
+			diff++
+		}
+	}
+
+	return sb.String()
 }
 
-func (r *Result) SpotLight() string {
-	if len(r.Words) == 0 {
+func (sr *ScanResult) IsToxic() bool {
+	return len(sr.words) > 0
+}
+
+func (sr *ScanResult) First() string {
+	if len(sr.words) == 0 {
 		return ""
 	}
 
-	var sb strings.Builder
-	for _, v := range r.Text {
-		if v == ' ' {
-			sb.WriteRune(' ')
-			continue
-		}
-		sb.WriteRune('_')
+	return sr.words[0].Word
+}
+
+func (sr *ScanResult) Last() string {
+	if len(sr.words) == 0 {
+		return ""
 	}
 
-	res := []rune(sb.String())
-	for _, w := range r.Words {
-		for i := w.Start; i <= w.End; i++ {
-			res[i] = rune(r.Text[i])
-		}
-	}
+	return sr.words[len(sr.words)-1].Word
+}
 
-	return string(res)
+func (sr *ScanResult) WordGenerator() *WordIndexGenerator {
+	return &WordIndexGenerator{
+		buff: sr.words,
+		cur:  -1,
+	}
+}
+
+func (sr *ScanResult) GetFoundWord() []*WordIndex {
+	return sr.words
+}
+func (sr *ScanResult) CountFoundWord() int {
+	return len(sr.words)
 }
