@@ -80,48 +80,60 @@ func (ms *ModalScan) Scan() *ScanResult {
 // Reursive willl scann in sub-string fashion
 func (ms *ModalScan) RecursiveScan() *ScanResult {
 
-	// This type of scan is easy if you use sanitize space
-	temp := ms.withSanitizeSpace
-	ms.WithSanitizeSpace(true)
-
 	res := &ScanResult{
 		text:        ms.text,
-		praScanText: ms.generateText(),
+		praScanText: ms.text,
 	}
 
-	ms.withSanitizeSpace = temp
+	if ms.withSanitizeSpace {
+		res.praScanText = ms.generateText()
+	}
 
 	var (
-		s        = res.praScanText
 		finished = false
+		idx      = 0
 	)
-	for l := 0; l <= len(s); l++ {
+	for s := range strings.SplitSeq(res.praScanText, " ") {
 		if finished {
 			break
 		}
 
-		sub := s[l:]
-		for _, r := range ms.dict.GetWordsLen() {
+		if s == "" {
+			idx++
+			continue
+		}
 
-			if r > len(sub) {
+		for l := 0; l <= len(s); l++ {
+			if finished {
 				break
 			}
 
-			word := sub[:r]
+			sub := s[l:]
+			for _, r := range ms.dict.GetWordsLen() {
 
-			if ms.dict.Contains(word) {
-				res.words = append(res.words, &WordIndex{
-					Word:  word,
-					Start: l,
-					End:   l + r - 1})
-
-				if ms.collect {
+				if r > len(sub) {
 					break
 				}
 
-				finished = true
+				word := sub[:r]
+
+				if ms.dict.Contains(word) {
+					res.words = append(res.words, &WordIndex{
+						Word:  word,
+						Start: l + idx,
+						End:   idx + l + r - 1,
+					})
+
+					if ms.collect {
+						break
+					}
+
+					finished = true
+				}
 			}
 		}
+
+		idx += len(s) + 1
 	}
 
 	return res
@@ -151,109 +163,3 @@ func (ms *ModalScan) generateText() string {
 	}
 	return sb.String()
 }
-
-// func (b *Bacot) Scan(s string) *Result {
-
-// 	if b.withSanitizeSpace {
-
-// 		var (
-// 			sanitizeString strings.Builder
-// 			spaces         = make(map[int]rune, 100)
-// 		)
-// 		for i, c := range s {
-// 			if c == ' ' {
-// 				spaces[i] = c
-// 				continue
-// 			}
-// 			sanitizeString.WriteRune(c)
-// 		}
-
-// 		res := b.scanning(sanitizeString.String())
-// 		res.spaceIndex = spaces
-// 		return res
-// 	}
-
-// 	if b.withExactWord {
-// 		// TODO: create a list that is not just space
-// 		var (
-// 			words = strings.Split(s, " ")
-// 			idx   = 0
-// 			res   = &Result{}
-// 		)
-// 		for _, w := range words {
-// 			if r := b.scanning(w); len(r.Words) > 0 {
-// 				r.Words[0].Start = idx
-// 				r.Words[0].End += idx
-// 				res.Words = append(res.Words, r.Words[0])
-
-// 				// if not using quick scan
-// 				if !(b.withCompound) {
-// 					break
-// 				}
-// 			}
-// 			idx += len(w) + 1
-// 		}
-// 		return res
-// 	}
-
-// 	res := b.scanning(s)
-
-// 	return res
-// }
-
-// func (b *Bacot) scanning(s string) *Result {
-
-// 	result := &Result{Text: s}
-
-// 	s = strings.ToLower(s)
-// 	lenS := len(s)
-
-// 	if b.withExactWord && !(slices.Contains(b.wordCount, lenS)) {
-// 		return result
-// 	}
-
-// 	// level 1 scanning (exact length)
-// 	if slices.Contains(b.wordCount, lenS) {
-// 		if b.Dict.Contains(s) {
-// 			return &Result{
-// 				Words: []*WordIndex{{s, 0, lenS - 1}},
-// 				Error: nil,
-// 			}
-// 		}
-// 	}
-
-// 	// level 1.5 scanning for indonesian langguange
-// 	// with pre-scanning (stemming)
-// 	// {...}
-
-// 	// level 2 scanning (sub-string)
-// 	// using left-right cursor
-// 	if !(b.withExactWord) {
-// 		for l := 0; l <= lenS; l++ {
-
-// 			sub := s[l:]
-// 			for _, r := range b.wordCount {
-
-// 				if r > len(sub) {
-// 					break
-// 				}
-
-// 				word := sub[:r]
-
-// 				// if using trim space,
-// 				// even if you use a word whose value s is already free of space characters, it is handled by func Scan() above
-// 				if b.Dict.Contains(word) {
-
-// 					result.Words = append(result.Words, &WordIndex{word, l, l + r - 1})
-// 					if b.withCompound {
-// 						break
-// 					}
-
-// 					return result
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	return result
-// }

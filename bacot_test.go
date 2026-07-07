@@ -1,6 +1,7 @@
 package bacot
 
 import (
+	"fmt"
 	"testing"
 
 	bacot "github.com/yumiodd/bacot/src"
@@ -194,7 +195,7 @@ func TestBacotDetectUsingRecursiveScanWithCollect(t *testing.T) {
 
 	b := bacot.New()
 
-	res := b.Text(" pasu an jingm babingsa").Collect(true).RecursiveScan()
+	res := b.Text(" pasu anjingm babingsa").Collect(true).RecursiveScan()
 
 	expInt := 3
 	if f := res.CountFoundWord(); f != expInt {
@@ -209,8 +210,38 @@ func TestBacotDetectUsingRecursiveScanWithCollect(t *testing.T) {
 		}
 	}
 
-	expStr := " p*** ** ****m ****ngsa"
+	expStr := " p*** ******m ****ngsa"
 	if s := res.CensoredText(); s != expStr {
 		t.Fatalf("expected found \"%s\" got: %s", expStr, s)
+	}
+}
+
+func TestBacotDetectRecursiveScanWithSanitizeWhiteSpaceFalse(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("  an jingm babingsa").Collect(true).RecursiveScan()
+
+	e := []string{"babi"}
+	if f := res.CountFoundWord(); f != len(e) {
+		fmt.Println(res.Extract())
+		t.Fatalf("expected found %d got: %d", len(e), f)
+	}
+}
+
+func TestBacotDetectRecursiveScanWithSanitizeWhiteSpaceTrue(t *testing.T) {
+
+	b := bacot.New()
+
+	res := b.Text("  an jingm babingsa").WithSanitizeSpace(true).Collect(true).RecursiveScan()
+
+	e := []string{"anjing", "babi"}
+	if f := res.CountFoundWord(); f != len(e) {
+		t.Fatalf("expected found %d got: %d", len(e), f)
+	}
+
+	eCensore := "  ** ****m ****ngsa"
+	if s := res.CensoredText(); s != eCensore {
+		t.Fatalf("expected %s got: %s", eCensore, s)
 	}
 }
