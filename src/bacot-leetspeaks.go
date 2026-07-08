@@ -17,8 +17,6 @@ var (
 		'&': {},
 		'%': {},
 		'?': {},
-		' ': {},
-		'	': {},
 	}
 
 	simpleLeetSpeaks = map[rune]rune{
