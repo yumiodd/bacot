@@ -53,28 +53,40 @@ func (sr *ScanResult) GetDetectWords() []string {
 
 func (sr *ScanResult) CensoredText() string {
 
-	s := []rune(sr.praScanText)
+	c := []rune(sr.praScanText)
 	for _, w := range sr.words {
 		for i := w.Start; i <= w.End; i++ {
-			s[i] = '*'
+			c[i] = '*'
 		}
 	}
 
 	if sr.text == sr.praScanText {
-		return string(s)
+		return string(c)
 	}
 
 	var (
 		sb   strings.Builder
 		diff = 0
+		r    = []rune(c)
 	)
-	for i, c := range sr.text {
-		if _, ok := whiteSpace[c]; ok {
-			sb.WriteRune(c)
+	for i, s := range sr.text {
+		if _, ok := whiteSpaces[s]; ok {
+			sb.WriteRune(s)
 			diff++
-		} else {
-			sb.WriteRune(s[i-diff])
+			continue
 		}
+		if s != r[i-diff] {
+
+			if v, ok := simpleLeetSpeaks[s]; ok && v == c[i-diff] {
+				sb.WriteRune(c[i-diff])
+				continue
+			} else {
+				sb.WriteRune('*')
+				diff++
+				continue
+			}
+		}
+		sb.WriteRune(c[i-diff])
 	}
 
 	return sb.String()

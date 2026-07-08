@@ -1,7 +1,7 @@
 package bacot
 
 var (
-	whiteSpace = map[rune]struct{}{
+	whiteSpaces = map[rune]struct{}{
 		'-': {},
 		'_': {},
 		'|': {},
@@ -21,5 +21,31 @@ var (
 		'	': {},
 	}
 
-	// specialChar = map[rune]rune{}
+	simpleLeetSpeaks = map[rune]rune{
+		'4': 'a',
+		'@': 'a',
+		'8': 'b',
+		'<': 'c',
+		'(': 'c',
+		'[': 'c',
+		'©': 'c',
+		'3': 'e',
+		'€': 'e',
+		'6': 'g',
+		'#': 'h',
+		'!': 'i',
+		'|': 'i',
+		'1': 'i',
+		'0': 'o',
+		'2': 'r',
+		'®': 'r',
+		'5': 's',
+		'$': 's',
+		'§': 's',
+		'7': 't',
+		'†': 't',
+		'µ': 'u',
+		'×': 'x',
+		'¥': 'y',
+	}
 )

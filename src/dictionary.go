@@ -43,8 +43,14 @@ func (d *Dictionary) GetWordsLen() []int {
 
 func NewDictionary() *Dictionary {
 
+	var moreBadwords []string
+	for _, w := range badwords {
+		moreBadwords = append(moreBadwords, craftMan(w)...)
+	}
+	moreBadwords = append(moreBadwords, badwords...)
+
 	new := &Dictionary{
-		badWords: NewDictWord(badwords...),
+		badWords: NewDictWord(moreBadwords...),
 		stops:    NewDictWord(defaultStopWords...),
 	}
 

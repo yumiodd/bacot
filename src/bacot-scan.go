@@ -1,17 +1,19 @@
 package bacot
 
 import (
+	"slices"
 	"strings"
 )
 
 type ModalScan struct {
 	// pre scan, user config
-	withReplaceSpecialChar bool // true
-	withSanitizeSpace      bool // false
+	withLeetSpeak     bool // true
+	withSanitizeSpace bool // false
 
 	// in scan, user config
-	collect bool // false
-	stem    bool // false
+	collect               bool // false
+	affix                 bool // true
+	sanitizeDuplicateChar bool // true
 
 	// temp, upper layer set (bacot)
 	text string
@@ -19,7 +21,7 @@ type ModalScan struct {
 }
 
 func (ms *ModalScan) WithReplaceSpecialChar(v bool) *ModalScan {
-	ms.withReplaceSpecialChar = v
+	ms.withLeetSpeak = v
 	return ms
 }
 
@@ -33,8 +35,18 @@ func (ms *ModalScan) Collect(v bool) *ModalScan {
 	return ms
 }
 
-func (ms *ModalScan) Stem(v bool) *ModalScan {
-	ms.stem = v
+func (ms *ModalScan) WithAffix(v bool) *ModalScan {
+	ms.affix = v
+	return ms
+}
+
+func (ms *ModalScan) SanitizeDuplicateChar(v bool) *ModalScan {
+	ms.sanitizeDuplicateChar = v
+	return ms
+}
+
+func (ms *ModalScan) WithLeetSpeak(v bool) *ModalScan {
+	ms.withLeetSpeak = v
 	return ms
 }
 
@@ -55,11 +67,34 @@ func (ms *ModalScan) Scan() *ScanResult {
 	for w := range words {
 		var lenW = len(w)
 
-		if !(ms.dict.IsContainLen(lenW)) {
-			return res
+		if !(ms.dict.IsContainLen(lenW)) || !(ms.affix && !ms.dict.IsStopWord(w)) {
+			continue
 		}
 
-		if ms.dict.Contains(w) {
+		var found = ms.dict.Contains(w)
+
+		// stemming
+		if !found && ms.affix && (lenW > 3) && slices.Contains(prefixes, w[:2]) {
+
+			// recursive scan / sliding window
+			for l := 0; l <= len(w); l++ {
+				sub := w[l:]
+
+				for _, r := range ms.dict.GetWordsLen() {
+					if r > len(sub) {
+						break
+					}
+
+					word := sub[:r]
+					if ms.dict.Contains(word) {
+						found = true
+						break
+					}
+				}
+			}
+		}
+
+		if found {
 			res.words = append(res.words,
 				&WordIndex{
 					Word:  w,
@@ -71,6 +106,7 @@ func (ms *ModalScan) Scan() *ScanResult {
 				break
 			}
 		}
+
 		idx += len(w) + 1
 	}
 
@@ -82,11 +118,7 @@ func (ms *ModalScan) RecursiveScan() *ScanResult {
 
 	res := &ScanResult{
 		text:        ms.text,
-		praScanText: ms.text,
-	}
-
-	if ms.withSanitizeSpace {
-		res.praScanText = ms.generateText()
+		praScanText: ms.generateText(),
 	}
 
 	var (
@@ -145,21 +177,54 @@ func (ms *ModalScan) generateText() string {
 		return ""
 	}
 
-	var sb strings.Builder
-	for _, c := range ms.text {
-		if ms.withSanitizeSpace {
-			if _, ok := whiteSpace[c]; ok {
-				continue
+	if ms.withLeetSpeak || ms.sanitizeDuplicateChar || ms.withSanitizeSpace {
+		var sb strings.Builder
+
+		for _, c := range ms.text {
+			if ms.withSanitizeSpace {
+				if _, ok := whiteSpaces[c]; ok {
+					continue
+				}
+			}
+
+			if ms.withLeetSpeak {
+				if replace, ok := simpleLeetSpeaks[c]; ok {
+					sb.WriteRune(replace)
+					continue
+				}
+			}
+
+			sb.WriteRune(c)
+		}
+
+		if ms.sanitizeDuplicateChar {
+			s := sanitizeDuplicateChar(sb.String())
+			if s != sb.String() {
+				sb.Reset()
+				sb.WriteString(s)
 			}
 		}
-		// if ms.withReplaceSpecialChar {
-		// 	if sc, ok := specialChar[c]; ok {
-		// 		ms.res.specialCharIndex[i] = c
-		// 		c = sc
-		// 	}
-		// }
 
-		sb.WriteRune(c)
+		return sb.String()
+
+	}
+	return ms.text
+}
+
+func sanitizeDuplicateChar(s string) string {
+
+	var (
+		sb   strings.Builder
+		prev rune
+	)
+
+	for _, c := range s {
+		if c == prev {
+			continue
+		} else {
+			sb.WriteRune(c)
+		}
+		prev = c
 	}
 	return sb.String()
 }

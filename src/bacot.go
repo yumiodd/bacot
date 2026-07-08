@@ -18,6 +18,10 @@ func New() *Bacot {
 
 func (b *Bacot) Text(s string) *ModalScan {
 	b.modalScan = &ModalScan{
+		withLeetSpeak:         true,
+		sanitizeDuplicateChar: true,
+		affix:                 true,
+
 		dict: b.Dict,
 		text: strings.ToLower(s),
 	}

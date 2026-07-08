@@ -1,19 +1,11 @@
 
 ![bacot.png](./bacot.png)
 -
-**Bacot** adalah module simple Profanity Filter GO nyang mengutamakan kata-kata dari bahasa Indonesia. Terinspirasi dari module-module keren ini:
+# **Bacot**
+Is a simple word filter module specifically for Indonesian language content. Having trouble making a list of words that are change its form because of KPST rules? Use this.
+## Basic Use
 
-- [go-away](https://github.com/TwiN/go-away) (Profanity Filter)
-- [go-sastrawi](https://github.com/RadhiFadlillah/go-sastrawi) (Word Stemmer)
-- dan beberapa yang lain.
-
-
----
-Cara kerjanya cukup simple, memeriksa input string yang diberikan, tergantung opsi seberapa sensitif input akan diperiksa, kemudian mencocokannya di dalam kamus kata yang sudah disediakan.
-
-khusus untuk bahasa Indonesia, akan ada proses tambahan dimana kata berimbihan akan di strip hingga menjadi kata akarnya.
-
-## Penggunaan Dasar
+Basically this is just a word filter module, but with a little algorithm for Indonesian.
 
 ```
 package main
