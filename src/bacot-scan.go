@@ -19,8 +19,13 @@ type ModalScan struct {
 	dict *Dictionary
 }
 
-func (ms *ModalScan) WithSanitizeSpace(v bool) *ModalScan {
+func (ms *ModalScan) WithReplaceSpace(v bool) *ModalScan {
 	ms.withReplaceSpace = v
+	return ms
+}
+
+func (ms *ModalScan) WithSanitizeSpace(v bool) *ModalScan {
+	ms.withSanitizeSpace = v
 	return ms
 }
 
