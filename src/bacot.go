@@ -29,12 +29,17 @@ func (b *Bacot) Text(s string) *ModalScan {
 	return b.modalScan
 }
 
-func (b *Bacot) AddWord(words ...string) *Bacot {
+func (b *Bacot) AddWord(affix bool, words ...string) *Bacot {
 
-	for _, w := range words {
-		badwords = append(badwords, strings.ToLower(w))
+	if affix {
+		for _, w := range words {
+			badwords = append(badwords, strings.ToLower(w))
+		}
+
+		b.Dict = NewDictionary()
+		return b
 	}
 
-	b.Dict = NewDictionary()
+	b.Dict.AddWords(words...)
 	return b
 }

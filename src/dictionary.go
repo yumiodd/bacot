@@ -3,6 +3,7 @@ package bacot
 import (
 	"maps"
 	"slices"
+	"strings"
 )
 
 type DictWords = map[string]struct{}
@@ -127,6 +128,7 @@ func (d *Dictionary) setUp() *Dictionary {
 
 func (d *Dictionary) AddWords(words ...string) {
 	for _, w := range words {
+		w = strings.ToLower(w)
 		d.badWords[w] = struct{}{}
 		d.setUp()
 	}
