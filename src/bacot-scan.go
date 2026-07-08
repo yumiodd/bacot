@@ -8,6 +8,7 @@ import (
 type ModalScan struct {
 	// pre scan, user config
 	withLeetSpeak     bool // true
+	withReplaceSpace  bool // true
 	withSanitizeSpace bool // false
 
 	// in scan, user config
@@ -21,7 +22,7 @@ type ModalScan struct {
 }
 
 func (ms *ModalScan) WithSanitizeSpace(v bool) *ModalScan {
-	ms.withSanitizeSpace = v
+	ms.withReplaceSpace = v
 	return ms
 }
 
@@ -172,12 +173,16 @@ func (ms *ModalScan) generateText() string {
 		return ""
 	}
 
-	if ms.withLeetSpeak || ms.sanitizeDuplicateChar || ms.withSanitizeSpace {
+	if ms.withLeetSpeak ||
+		ms.sanitizeDuplicateChar ||
+		ms.withReplaceSpace ||
+		ms.withSanitizeSpace {
 		var sb strings.Builder
 
 		for _, c := range ms.text {
-			if ms.withSanitizeSpace {
+			if ms.withReplaceSpace {
 				if _, ok := whiteSpaces[c]; ok {
+					sb.WriteRune(' ')
 					continue
 				}
 			}
@@ -198,6 +203,12 @@ func (ms *ModalScan) generateText() string {
 				sb.Reset()
 				sb.WriteString(s)
 			}
+		}
+
+		if ms.withSanitizeSpace {
+			s := sanitizeSpace(sb.String())
+			sb.Reset()
+			sb.WriteString(s)
 		}
 
 		return sb.String()
@@ -221,5 +232,19 @@ func sanitizeDuplicateChar(s string) string {
 		}
 		prev = c
 	}
+	return sb.String()
+}
+
+func sanitizeSpace(s string) string {
+
+	var sb strings.Builder
+	for _, c := range s {
+		if c == ' ' {
+			sb.WriteRune(c)
+			continue
+		}
+		sb.WriteRune(c)
+	}
+
 	return sb.String()
 }
