@@ -43,15 +43,7 @@ func (sr *ScanResult) GetText() string {
 	return sr.text
 }
 
-func (sr *ScanResult) GetDetectWords() []string {
-	var words []string
-	for _, w := range sr.words {
-		words = append(words, w.Word)
-	}
-	return words
-}
-
-func (sr *ScanResult) CensoredText() string {
+func (sr *ScanResult) Censored() string {
 
 	c := []rune(sr.praScanText)
 	for _, w := range sr.words {
@@ -92,7 +84,7 @@ func (sr *ScanResult) CensoredText() string {
 	return sb.String()
 }
 
-func (sr *ScanResult) IsToxic() bool {
+func (sr *ScanResult) IsProfine() bool {
 	return len(sr.words) > 0
 }
 
@@ -119,10 +111,7 @@ func (sr *ScanResult) WordGenerator() *WordIndexGenerator {
 	}
 }
 
-func (sr *ScanResult) GetFoundWord() []*WordIndex {
-	return sr.words
-}
-func (sr *ScanResult) CountFoundWord() int {
+func (sr *ScanResult) Count() int {
 	return len(sr.words)
 }
 
