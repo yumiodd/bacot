@@ -8,32 +8,27 @@ Is a simple word filter module specifically for Indonesian language content. Hav
 Basically this is just a word filter module, but with a little algorithm for Indonesian.
 
 ```
-package main
 
-import bacot "github.com/yumiodd/bacot/src"
+    package main
 
-func main() {
+    import (
+        "fmt"
 
-    // Membuat struct baru
-    b := bacot.New()
+        bacot "github.com/yumiodd/bacot/src"
+    )
 
-    // Membuat modal scan
-    text1 := b.Text("dasar kamu Anjing")
-    text2 := b.Text("babi anjing")
+    func main() {
 
-    // melakukan scan, menghasilkan struct result
-    //
-    // kita menyediakan 2 opsi:
-    // Scan(), melakuakan pemeriksaan per kata yang dipisah dengan spasi.
-    // RecursiveScan(), proses ini akan memeriksa substring dari input.
+        // Inital struct
+        b := bacot.New()
 
-    res1 := text1.Scan()
-    res2 := text2.RecursiveScan()
+        // Create a modal scan
+        text1 := b.Text("hallo")
+        text2 := b.Text("anjing")
 
-    // Mendapatkan informasi hasil
-    fmt.Println(res1.IsToxic())         // output: true , profined->"Anjing"
-    fmt.Println(res2.CountFoundWord())  // output: 2, profined-> "babi", "anjing"
-}
+        fmt.Println(text1.Scan().IsToxic()) // output: false
+        fmt.Println(text2.Scan().IsToxic()) // outout: true
+    }
 
 ```
 ## Option pre-scan

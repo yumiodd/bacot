@@ -19,3 +19,11 @@ func TestBacotLeetSpeak(t *testing.T) {
 			CensoredText(),
 	)
 }
+
+func TestAddWord(t *testing.T) {
+
+	b = b.AddWord("pukul")
+	fmt.Println(b.Text("memukul").Scan().IsToxic())
+	fmt.Println(b.Text("pemukul").Scan().IsToxic())
+
+}

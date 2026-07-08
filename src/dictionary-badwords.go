@@ -122,7 +122,7 @@ var badwords = []string{
 	"kacung",
 	"kampang",
 	"kampret",
-	"kampungan",
+	// "kampungan",
 	"kehed",
 	"kemplu",
 	"kenthu",

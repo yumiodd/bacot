@@ -28,3 +28,13 @@ func (b *Bacot) Text(s string) *ModalScan {
 
 	return b.modalScan
 }
+
+func (b *Bacot) AddWord(words ...string) *Bacot {
+
+	for _, w := range words {
+		badwords = append(badwords, w)
+	}
+
+	b.Dict = NewDictionary()
+	return b
+}
