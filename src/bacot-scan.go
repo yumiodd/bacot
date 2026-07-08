@@ -6,17 +6,15 @@ import (
 )
 
 type ModalScan struct {
-	// pre scan, user config
-	withLeetSpeak     bool // true
-	withReplaceSpace  bool // true
-	withSanitizeSpace bool // false
+	withLeetSpeak     bool // def: true
+	withReplaceSpace  bool // def: true
+	withSanitizeSpace bool // def: false
 
-	// in scan, user config
-	collect               bool // false
-	affix                 bool // true
-	sanitizeDuplicateChar bool // true
+	collect               bool // def: false
+	affix                 bool // def: true
+	sanitizeDuplicateChar bool // def: true
 
-	// temp, upper layer set (bacot)
+	// temp, upper layer set by (bacot)
 	text string
 	dict *Dictionary
 }
@@ -46,7 +44,7 @@ func (ms *ModalScan) WithLeetSpeak(v bool) *ModalScan {
 	return ms
 }
 
-// Scan is per-word scanning
+// per word scanning
 func (ms *ModalScan) Scan() *ScanResult {
 
 	res := &ScanResult{
@@ -109,7 +107,7 @@ func (ms *ModalScan) Scan() *ScanResult {
 	return res
 }
 
-// Reursive willl scann in sub-string fashion
+// Reursive will scan in sub-string fashion
 func (ms *ModalScan) RecursiveScan() *ScanResult {
 
 	res := &ScanResult{
@@ -144,7 +142,6 @@ func (ms *ModalScan) RecursiveScan() *ScanResult {
 				}
 
 				word := sub[:r]
-
 				if ms.dict.Contains(word) {
 					res.words = append(res.words, &WordIndex{
 						Word:  word,
@@ -155,12 +152,10 @@ func (ms *ModalScan) RecursiveScan() *ScanResult {
 					if ms.collect {
 						break
 					}
-
 					finished = true
 				}
 			}
 		}
-
 		idx += len(s) + 1
 	}
 
@@ -177,6 +172,7 @@ func (ms *ModalScan) generateText() string {
 		ms.sanitizeDuplicateChar ||
 		ms.withReplaceSpace ||
 		ms.withSanitizeSpace {
+
 		var sb strings.Builder
 
 		for _, c := range ms.text {
@@ -193,7 +189,6 @@ func (ms *ModalScan) generateText() string {
 					continue
 				}
 			}
-
 			sb.WriteRune(c)
 		}
 
@@ -210,7 +205,6 @@ func (ms *ModalScan) generateText() string {
 			sb.Reset()
 			sb.WriteString(s)
 		}
-
 		return sb.String()
 
 	}
@@ -218,7 +212,6 @@ func (ms *ModalScan) generateText() string {
 }
 
 func sanitizeDuplicateChar(s string) string {
-
 	var (
 		sb   strings.Builder
 		prev rune
@@ -245,6 +238,5 @@ func sanitizeSpace(s string) string {
 		}
 		sb.WriteRune(c)
 	}
-
 	return sb.String()
 }
