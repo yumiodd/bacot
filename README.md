@@ -2,7 +2,7 @@
 ![bacot.png](./bacot.png)
 -
 
-## Basic Use
+## Usage
 
 Kesusahan buat daftar kata-kata yang dibatasi dalam bahasa Indonesia? Pake ini.
 
@@ -27,18 +27,16 @@ func main() {
 	text4 := b.Text("ngampret")
 	text5 := b.Text("memukul")
 
-	fmt.Println(text1.Scan().IsToxic()) // output: false
-	fmt.Println(text2.Scan().IsToxic()) // output: true
-	fmt.Println(text3.Scan().IsToxic()) // output: true
-	fmt.Println(text4.Scan().IsToxic()) // output: true
-	fmt.Println(text5.Scan().IsToxic()) // output: false
+	fmt.Println(text1.Scan().IsProfine()) // output: false
+	fmt.Println(text2.Scan().IsProfine()) // output: true
+	fmt.Println(text3.Scan().IsProfine()) // output: true
+	fmt.Println(text4.Scan().IsProfine()) // output: true
+	fmt.Println(text5.Scan().IsProfine()) // output: false
 
 	// Tambah kata
-	b = b.AddWord("pukul")
+	b = b.AddWord(true, "pukul")
+	fmt.Println(text5.Scan().IsProfine()) // output: true
 
-	text6 := b.Text("memukul")
-
-	fmt.Println(text6.Scan().IsToxic()) // output: true
 }
 ```
 'memukul' tidak ada dalam dictionary tapi digenerate dari kata 'pukul'. Daftar kata yang disediakan kebanyakan adalah kata dasar, semua variasi
@@ -48,12 +46,11 @@ kata akan digenerate saat `bacot.New()`. Kamu bisa ambil daftar mapnya di `Dict.
 func main() {
 
 	b := bacot.New()
-
 	fmt.Println(b.Dict.GetDict())   // output: malas, coba sendiri aja.
 }
 ```
 
-## Opsi Pre-Scan
+## Pre-scan Options
 Beberapa opsi yang bisa di pakai untuk mengubah prilaku scan:
 ```
 package main

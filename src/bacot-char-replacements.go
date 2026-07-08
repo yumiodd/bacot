@@ -1,7 +1,7 @@
 package bacot
 
 var (
-	whiteSpaces = map[rune]struct{}{
+	advanceLeetSpeaks = map[rune]struct{}{
 		'-': {},
 		'_': {},
 		'|': {},

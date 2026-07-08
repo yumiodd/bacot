@@ -81,10 +81,8 @@ func (ms *ModalScan) Scan() *ScanResult {
 				break
 			}
 		}
-
 		idx += len(w) + 1
 	}
-
 	return res
 }
 
