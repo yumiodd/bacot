@@ -17,8 +17,8 @@ func NewDictWord(words ...string) DictWords {
 }
 
 type Dictionary struct {
-	badWords DictWords
-	stops    DictWords
+	words DictWords
+	stops DictWords
 
 	min       int
 	max       int
@@ -51,19 +51,26 @@ func NewDictionary() *Dictionary {
 	moreBadwords = append(moreBadwords, badwords...)
 
 	new := &Dictionary{
-		badWords: NewDictWord(moreBadwords...),
-		stops:    NewDictWord(defaultStopWords...),
+		words: NewDictWord(moreBadwords...),
+		stops: NewDictWord(defaultStopWords...),
 	}
 
+	new.recount()
+
+	return new
+}
+
+func (d *Dictionary) recount() {
+
 	wordCount := map[int]int{}
-	new.min = 99999
-	for _, word := range slices.Collect(maps.Keys(new.badWords)) {
+	d.min = 99999
+	for _, word := range slices.Collect(maps.Keys(d.words)) {
 		lw := len(word)
-		if lw > new.max {
-			new.max = lw
+		if lw > d.max {
+			d.max = lw
 		}
-		if lw < new.min {
-			new.min = lw
+		if lw < d.min {
+			d.min = lw
 		}
 
 		_, ok := wordCount[lw]
@@ -82,19 +89,17 @@ func NewDictionary() *Dictionary {
 			maxCount = v
 		}
 	}
-	new.majorty = common
+	d.majorty = common
 
-	new.wordCount = slices.Collect(maps.Keys(wordCount))
-	slices.Sort(new.wordCount)
-
-	return new
+	d.wordCount = slices.Collect(maps.Keys(wordCount))
+	slices.Sort(d.wordCount)
 }
 
 func (d *Dictionary) setUp() *Dictionary {
 
 	var wordCount = map[int]int{}
 	d.min = 99999
-	for _, word := range slices.Collect(maps.Keys(d.badWords)) {
+	for _, word := range slices.Collect(maps.Keys(d.words)) {
 		lw := len(word)
 		if lw > d.max {
 			d.max = lw
@@ -129,28 +134,28 @@ func (d *Dictionary) setUp() *Dictionary {
 func (d *Dictionary) AddWords(words ...string) {
 	for _, w := range words {
 		w = strings.ToLower(w)
-		d.badWords[w] = struct{}{}
+		d.words[w] = struct{}{}
 		d.setUp()
 	}
 }
 
 func (d *Dictionary) DelWords(words ...string) {
 	for _, w := range words {
-		delete(d.badWords, w)
+		delete(d.words, w)
 		d.setUp()
 	}
 }
 
 // Remove both stop and badwords
 func (d *Dictionary) Clear() *Dictionary {
-	d.badWords = DictWords{}
+	d.words = DictWords{}
 	d.stops = DictWords{}
 	d.setUp()
 	return nil
 }
 
 func (d *Dictionary) Contains(word string) bool {
-	if _, ok := d.badWords[word]; ok {
+	if _, ok := d.words[word]; ok {
 		return true
 	}
 
@@ -158,7 +163,7 @@ func (d *Dictionary) Contains(word string) bool {
 }
 
 func (d *Dictionary) GetDict() DictWords {
-	return d.badWords
+	return d.words
 }
 
 func (d *Dictionary) IsStopWord(s string) bool {

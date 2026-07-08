@@ -18,13 +18,17 @@ func New() *Bacot {
 
 func (b *Bacot) Text(s string) *ModalScan {
 	b.modalScan = &ModalScan{
-		withLeetSpeak:         true,
-		sanitizeDuplicateChar: true,
-		affix:                 true,
-
-		dict: b.Dict,
-		text: strings.ToLower(s),
+		affix: true,
+		dict:  b.Dict,
+		input: s,
+		text:  strings.ToLower(s),
 	}
+
+	// Default settings
+	b.modalScan.
+		WithLeetSpeak().
+		UnstackChar().
+		Affix(true)
 
 	return b.modalScan
 }
@@ -32,14 +36,17 @@ func (b *Bacot) Text(s string) *ModalScan {
 func (b *Bacot) AddWord(affix bool, words ...string) *Bacot {
 
 	if affix {
+		var s []string
 		for _, w := range words {
-			badwords = append(badwords, strings.ToLower(w))
+			s = append(s, craftMan(w)...)
 		}
 
-		b.Dict = NewDictionary()
-		return b
+		b.Dict.AddWords(s...)
+
+	} else {
+		b.Dict.AddWords(words...)
 	}
 
-	b.Dict.AddWords(words...)
+	b.Dict.recount()
 	return b
 }

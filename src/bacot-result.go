@@ -43,7 +43,7 @@ func (sr *ScanResult) GetText() string {
 	return sr.text
 }
 
-func (sr *ScanResult) Censored() string {
+func (sr *ScanResult) Censor() string {
 
 	c := []rune(sr.praScanText)
 	for _, w := range sr.words {
@@ -62,12 +62,17 @@ func (sr *ScanResult) Censored() string {
 		r    = []rune(c)
 	)
 	for i, s := range sr.text {
-		if _, ok := whiteSpaces[s]; ok {
+		if s == ' ' {
 			sb.WriteRune(s)
 			diff++
 			continue
 		}
 		if s != r[i-diff] {
+
+			if s < 'z' && s+32 == r[i-diff] {
+				sb.WriteRune(c[i-diff])
+				continue
+			}
 
 			if v, ok := simpleLeetSpeaks[s]; ok && v == c[i-diff] {
 				sb.WriteRune(c[i-diff])
@@ -104,7 +109,7 @@ func (sr *ScanResult) Last() string {
 	return sr.words[len(sr.words)-1].Word
 }
 
-func (sr *ScanResult) WordGenerator() *WordIndexGenerator {
+func (sr *ScanResult) Generator() *WordIndexGenerator {
 	return &WordIndexGenerator{
 		buff: sr.words,
 		cur:  -1,

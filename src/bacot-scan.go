@@ -6,27 +6,13 @@ import (
 )
 
 type ModalScan struct {
-	withLeetSpeak     bool // def: true
-	withReplaceSpace  bool // def: true
-	withSanitizeSpace bool // def: false
-
-	collect               bool // def: false
-	affix                 bool // def: true
-	sanitizeDuplicateChar bool // def: true
+	collect bool // def: false
+	affix   bool // def: true
 
 	// temp, upper layer set by (bacot)
-	text string
-	dict *Dictionary
-}
-
-func (ms *ModalScan) WithReplaceSpace(v bool) *ModalScan {
-	ms.withReplaceSpace = v
-	return ms
-}
-
-func (ms *ModalScan) WithSanitizeSpace(v bool) *ModalScan {
-	ms.withSanitizeSpace = v
-	return ms
+	input string
+	text  string
+	dict  *Dictionary
 }
 
 func (ms *ModalScan) Collect(v bool) *ModalScan {
@@ -34,18 +20,8 @@ func (ms *ModalScan) Collect(v bool) *ModalScan {
 	return ms
 }
 
-func (ms *ModalScan) WithAffix(v bool) *ModalScan {
+func (ms *ModalScan) Affix(v bool) *ModalScan {
 	ms.affix = v
-	return ms
-}
-
-func (ms *ModalScan) SanitizeDuplicateChar(v bool) *ModalScan {
-	ms.sanitizeDuplicateChar = v
-	return ms
-}
-
-func (ms *ModalScan) WithLeetSpeak(v bool) *ModalScan {
-	ms.withLeetSpeak = v
 	return ms
 }
 
@@ -53,8 +29,8 @@ func (ms *ModalScan) WithLeetSpeak(v bool) *ModalScan {
 func (ms *ModalScan) Scan() *ScanResult {
 
 	res := &ScanResult{
-		text:        ms.text,
-		praScanText: ms.generateText(),
+		text:        ms.input,
+		praScanText: ms.text,
 	}
 
 	var (
@@ -116,8 +92,8 @@ func (ms *ModalScan) Scan() *ScanResult {
 func (ms *ModalScan) RecursiveScan() *ScanResult {
 
 	res := &ScanResult{
-		text:        ms.text,
-		praScanText: ms.generateText(),
+		text:        ms.input,
+		praScanText: ms.text,
 	}
 
 	var (
@@ -167,62 +143,13 @@ func (ms *ModalScan) RecursiveScan() *ScanResult {
 	return res
 }
 
-func (ms *ModalScan) generateText() string {
-
-	if ms.text == "" {
-		return ""
-	}
-
-	if ms.withLeetSpeak ||
-		ms.sanitizeDuplicateChar ||
-		ms.withReplaceSpace ||
-		ms.withSanitizeSpace {
-
-		var sb strings.Builder
-
-		for _, c := range ms.text {
-			if ms.withReplaceSpace {
-				if _, ok := whiteSpaces[c]; ok {
-					sb.WriteRune(' ')
-					continue
-				}
-			}
-
-			if ms.withLeetSpeak {
-				if replace, ok := simpleLeetSpeaks[c]; ok {
-					sb.WriteRune(replace)
-					continue
-				}
-			}
-			sb.WriteRune(c)
-		}
-
-		if ms.sanitizeDuplicateChar {
-			s := sanitizeDuplicateChar(sb.String())
-			if s != sb.String() {
-				sb.Reset()
-				sb.WriteString(s)
-			}
-		}
-
-		if ms.withSanitizeSpace {
-			s := sanitizeSpace(sb.String())
-			sb.Reset()
-			sb.WriteString(s)
-		}
-		return sb.String()
-
-	}
-	return ms.text
-}
-
-func sanitizeDuplicateChar(s string) string {
+func (ms *ModalScan) UnstackChar() *ModalScan {
 	var (
 		sb   strings.Builder
 		prev rune
 	)
 
-	for _, c := range s {
+	for _, c := range ms.text {
 		if c == prev {
 			continue
 		} else {
@@ -230,18 +157,38 @@ func sanitizeDuplicateChar(s string) string {
 		}
 		prev = c
 	}
-	return sb.String()
+
+	ms.text = sb.String()
+	return ms
 }
 
-func sanitizeSpace(s string) string {
+func (ms *ModalScan) TrimSpace() *ModalScan {
 
 	var sb strings.Builder
-	for _, c := range s {
+	for _, c := range ms.text {
 		if c == ' ' {
-			sb.WriteRune(c)
 			continue
 		}
 		sb.WriteRune(c)
 	}
-	return sb.String()
+	ms.text = sb.String()
+	return ms
+}
+
+func (ms *ModalScan) WithLeetSpeak() *ModalScan {
+
+	var sb strings.Builder
+	for _, c := range ms.text {
+		if r, ok := simpleLeetSpeaks[c]; ok {
+			sb.WriteRune(r)
+			continue
+		}
+		sb.WriteRune(c)
+	}
+	ms.text = sb.String()
+	return ms
+}
+
+func (ms *ModalScan) GetText() string {
+	return ms.text
 }

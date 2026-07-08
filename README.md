@@ -53,8 +53,8 @@ func main() {
 }
 ```
 
-## Option pre-scan
-Beberapa opsi yang bisa kamu gunakan untuk mengubah prilaku scan:
+## Opsi Pre-Scan
+Beberapa opsi yang bisa di pakai untuk mengubah prilaku scan:
 ```
 package main
 
