@@ -175,7 +175,7 @@ func ky_consonanAddition(s string) []string {
 	s = strings.ToLower(s)
 
 	if len(s) >= 3 && slices.Contains(vocals, rune(s[len(s)-1])) {
-		return []string{s + "k", s + "kk", s + "y"}
+		return []string{s + "k", s, s + "y"}
 	}
 	return []string{}
 }

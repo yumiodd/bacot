@@ -20,11 +20,6 @@ type ModalScan struct {
 	dict *Dictionary
 }
 
-func (ms *ModalScan) WithReplaceSpecialChar(v bool) *ModalScan {
-	ms.withLeetSpeak = v
-	return ms
-}
-
 func (ms *ModalScan) WithSanitizeSpace(v bool) *ModalScan {
 	ms.withSanitizeSpace = v
 	return ms

@@ -1,36 +1,58 @@
 
 ![bacot.png](./bacot.png)
 -
-# **Bacot**
-Is a simple word filter module specifically for Indonesian language content. Having trouble making a list of words that are change its form because of KPST rules? Use this.
+
 ## Basic Use
 
-Basically this is just a word filter module, but with a little algorithm for Indonesian.
+Kesusahan buat daftar kata-kata yang dibatasi dalam bahasa Indonesia? Pake ini.
 
 ```
+package main
 
-    package main
+import (
+	"fmt"
 
-    import (
-        "fmt"
+	bacot "github.com/yumiodd/bacot/src"
+)
 
-        bacot "github.com/yumiodd/bacot/src"
-    )
+func main() {
 
-    func main() {
+	// Inisial main struct
+	b := bacot.New()
 
-        // Inital struct
-        b := bacot.New()
+	// Buat modal scan
+	text1 := b.Text("hallo")
+	text2 := b.Text("anjing")
+	text3 := b.Text("menganjing")
+	text4 := b.Text("ngampret")
+	text5 := b.Text("memukul")
 
-        // Create a modal scan
-        text1 := b.Text("hallo")
-        text2 := b.Text("anjing")
+	fmt.Println(text1.Scan().IsToxic()) // output: false
+	fmt.Println(text2.Scan().IsToxic()) // output: true
+	fmt.Println(text3.Scan().IsToxic()) // output: true
+	fmt.Println(text4.Scan().IsToxic()) // output: true
+	fmt.Println(text5.Scan().IsToxic()) // output: false
 
-        fmt.Println(text1.Scan().IsToxic()) // output: false
-        fmt.Println(text2.Scan().IsToxic()) // outout: true
-    }
+	// Tambah kata
+	b = b.AddWord("pukul")
+
+	text6 := b.Text("memukul")
+
+	fmt.Println(text6.Scan().IsToxic()) // output: true
+}
+```
+'memukul' tidak ada dalam dictionary tapi digenerate dari kata 'pukul'. Daftar kata yang disediakan kebanyakan adalah kata dasar, semua variasi
+kata akan digenerate saat `bacot.New()`. Kamu bisa ambil daftar mapnya di `Dict.GetDict() `
 
 ```
+func main() {
+
+	b := bacot.New()
+
+	fmt.Println(b.Dict.GetDict())   // output: malas, coba sendiri aja.
+}
+```
+
 ## Option pre-scan
 Beberapa opsi yang bisa kamu gunakan untuk mengubah prilaku scan:
 ```

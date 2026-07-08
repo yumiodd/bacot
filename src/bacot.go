@@ -32,7 +32,7 @@ func (b *Bacot) Text(s string) *ModalScan {
 func (b *Bacot) AddWord(words ...string) *Bacot {
 
 	for _, w := range words {
-		badwords = append(badwords, w)
+		badwords = append(badwords, strings.ToLower(w))
 	}
 
 	b.Dict = NewDictionary()
