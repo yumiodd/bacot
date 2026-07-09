@@ -18,12 +18,11 @@ func (wig *WordIndexGenerator) Yield() *WordIndex {
 		return nil
 	}
 
-	// fallback for out of range index
-	if wig.cur > len(wig.buff)-1 {
+	wig.cur++
+	if wig.cur >= len(wig.buff) {
 		return nil
 	}
 
-	wig.cur++
 	return wig.buff[wig.cur]
 }
 
