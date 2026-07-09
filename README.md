@@ -1,126 +1,96 @@
 
-![bacot.png](./bacot.png)
--
+![bacot banner](./bacot.png)
 
-## Usage
 
-Kesusahan buat daftar kata-kata yang dibatasi dalam bahasa Indonesia? Pake ini.
+# Bacot
 
-```
-package main
+Module go sederhana penyaring kata, dikhususkan untuk bahasa Indonesia.
 
-import (
-	"fmt"
+Bahasa Indonesia itu termasuk bahasa aglutinatif, bergantung banget sama affix (imbuhan) yang mana makna satu kata aja bisa berubah-ubah tergantung imbuhannya yang nempel. Capek bikin variasi satu kata dengan imbuhannya? pake module ini, cukup daftarkan kata dasar saja, sisanya beres.
 
-	bacot "github.com/yumiodd/bacot/src"
-)
+## Installation
 
-func main() {
 
-	// Inisial main struct
-	b := bacot.New()
 
-	// Buat modal scan
-	text1 := b.Text("hallo")
-	text2 := b.Text("anjing")
-	text3 := b.Text("menganjing")
-	text4 := b.Text("ngampret")
-	text5 := b.Text("memukul")
-
-	fmt.Println(text1.Scan().IsProfine()) // output: false
-	fmt.Println(text2.Scan().IsProfine()) // output: true
-	fmt.Println(text3.Scan().IsProfine()) // output: true
-	fmt.Println(text4.Scan().IsProfine()) // output: true
-	fmt.Println(text5.Scan().IsProfine()) // output: false
-
-	// Tambah kata
-	b = b.AddWord(true, "pukul")
-	fmt.Println(text5.Scan().IsProfine()) // output: true
-
-}
-```
-'memukul' tidak ada dalam dictionary tapi digenerate dari kata 'pukul'. Daftar kata yang disediakan kebanyakan adalah kata dasar, semua variasi
-kata akan digenerate saat `bacot.New()`. Kamu bisa ambil daftar mapnya di `Dict.GetDict() `
-
-```
-func main() {
-
-	b := bacot.New()
-	fmt.Println(b.Dict.GetDict())   // output: malas, coba sendiri aja.
-}
-```
-
-## Pre-scan Options
-Beberapa opsi yang bisa di pakai untuk mengubah prilaku scan:
-```
-package main
-
+```go
 import bacot "github.com/yumiodd/bacot/src"
+```
+    
+## Usage/Examples
 
-func main() {
+```go
 
-    // initial
+    // quick use
     b := bacot.New()
 
-    text := b.Text("dasar kamu babi")
+    text := b.Text("bacot")
 
-    // Menghilangkan whitespace
-    text = text.WithSanitizeWhiteSpace(true)
+    scanResult := text.Scan() 
 
-    // Menormalisasikan semua leetSpeak karakter
-    text = text.WithNormalizeLeetSpeak(true)
+    scanResult.IsProfane()      // output: true
+    scanResult.Censor()         //output: *****
+    scanResult.Extract()        //output: bacot
 
-    // Mengumpulkan semua kata yang terdapat dalam kamus
-    text = text.Collect()
+    // using chain method
+    bacot.New().Text("bacot").Scan().IsProfane()    // output: true
 
-    // Menggunakan Stemming, digunakan sebagai default
-    text = text.WithStemming()
+    // add new word
+    b.Text("memukul").Scan().IsProfane()    // output: false
 
-}
+    b.AddWord("pukul")
+    b.Text("memukul").Scan().IsProfane()    // output: true
+```
+Karena `bacot.New()` akan melakukan generate pada kamus jadi saya tidak menyarankan menggunakannya berulang setiap kali memeriksa text, itu akan mempengaruhi kecepatan proses.
+
+`Bacot.Text("text")` akan mengembalikan struct `ModalScan{}`  yang mana adalah struct utama yang melakuakn scanning pada inputan text, setiap `ModalScan` itu independen jadi configurasi tidak saling mempengaruhi ke yang lain.
+```go
+    b := b.New()
+
+    // text1 dan text2 adalah 2 ModalScan yang berbeda
+    text1 := b.Text("bacot anj ing")
+    text2 := b.Text("ba8!")
+```
+`ModalScan{}` memiliki beberpaa konifgurasi yang bisa terapkan sebelum melakukan `Scan()`.
+```go
+    b := bacot.New()
+
+    // Chaining Method builder, jadi bisa diset sekaligus secara runtut
+    text := b.Text("bacot").WithLeetSpeak().Collect().Affix().TrimSpace().UnstackChar()
+    result := text.Scan()
 
 ```
-Semua opsi diatas bisa digunakan untuk semua jenis scan, `Scan() ` dan `RecursiveScan()`. 
+> **opsi pre-scan** `Options() // (default value)`
+- `TrimSpace() // false`, seperti namanya space input text akan dihilangkan.
+- `WithLeetSpeak() // true`, menggati semua karakter leet speak ke bentuk alfabet biasa, cth: @ -> a, 8 -> b, 6 -> g. 
+- `UnstackChar() // true`, menghapus karakter duplikat pada input text, mempercepat proses pencarian dan lebih akurat.
+- `Affix(bool) // true`, pada dasarnya daftar kata pada kamus sebagian besar hanya terdiri dari kata dasar, kemudian semua kata yang berpotensi luluh karena penggabungan imbuhan men- dan peng- digenerate ketika `bacot.New()`. Dengan opsi ini kata-kata bentuk kompleks yang memiliki potensi terdaftar dalam kamus seperti "berpembacotan" tidak akan lolos. *note: hanya bekerja untuk `Scan()`.
+- `Collect(true) // false`, defaultnya `Scan()`  akan selesai ketika mendapatkan satu kata atau tidak sama sekali, dengan opsi ini semua kata yang ditemukan akan dikumpulkan hingga akhir dari text input.
+- method `GetText()`, mengembalikan bentuk akhir string dari text yang akan discan, cth: `Text("ba co t").TrimSpace().GetText() // output: "bacot"`
 
-Untuk whitespace kami memiliki daftar default, namun bisa kamu custom di saat pembuatan New(), tapi masih dalam tahap pengembangan.
+> Terdapat dua jenis scan,
+- `Scan()`, mencocokan perkata.
+- `RecursiveScan()`, mencocokan untuk setiap substring dari kata, tidak termasuk spasi.
 
-## Hasil Penyaringan
-hasil penyaringan, dapat di proses dalam berbagai rupa, di dalam module sudah di sediakan dan akan di tambah seiring kebutuhan dan dalam pengambangan.
+###### **Scan Return**
+semua jenis scan akan mengambalikan struct `ScanResult{}`:
+``` go
+    
+    res := bacot.New().Text("jangan banyak bacot kamu ya, sialan").Scan()
+
+    res.Extract()   // output: ["bacot", "sialan"]
+    res.Censor()    // output: "jangan banyak ***** kamu ya, ******"
+    res.GetText()   // output: "jangan banyak bacot kamu ya, sialan"
+    res.IsProfane() // output: true
+    res.First()     // output: "bacot"
+    res.Last()      // output: "sialan"
+    res.Count()     // output: 2
 ```
-package main
 
-import bacot "github.com/yumiodd/bacot/src"
+## Contributing
 
-func main() {
+Segala konstribusi sangat wellcome ya, terutama untuk daftar kamus.
 
+## License
 
-    res := bacot.New().Text("dasar babi anjing").Scan()
+[MIT](https://choosealicense.com/licenses/mit/)
 
-    // Memerika apakah mengandung kata yang dibatasi
-    fmt.Println(res.IsToxic())                  // output: true
-
-    // Mengambil kata pertama dan terakhir jumpa
-    fmt.Println(res.First())                    // output: "babi"
-    fmt.Println(res.Last())                     // output: "anjig"
-
-    // Menyensor kata yang dibatasi dalam kalimat
-    fmt.Println(res.CensorText())               // output: "dasar **** ******"
-
-    // Menghitung kata yang dibatasi
-    fmt.Println(res.CountFoundWord())           // output: 2
-
-    // Mengekstrak kata yang dibatasi yang ditemukan
-    words := res.Extract()                      // output: []string{"babi", "anjing"}
-
-    // Mengabil data mentah
-    wordIndexes := res.GetFountWords()          // output: []*WordIndex{}
-
-    // Membuat word generator, mirip fungsi yield di python
-    gen := res.Generator()
-
-    fmt.Println(gen.Yield().Word())              // output : "babi"   
-    fmt.Println(gen.Yield().Word())              // output : "anjing"   
-}
-
-``` 
-## Pengembangan
-Seperti module pada umumnya, module ini open source saya harap para module dev yang tertarik dapat berkonstribusi dan membuat module ini lebih baik, bahkan untuk yang tidak memahami coding masih bisa melakukan konstribusi dengan melakukan update pada kamus perkataan kasar, saya harap module ini berguna dan bisa dipakai oleh orang-orang yang memiliki kesulitan yang serupa.

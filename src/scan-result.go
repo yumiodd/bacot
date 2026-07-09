@@ -89,7 +89,7 @@ func (sr *ScanResult) Censor() string {
 	return sb.String()
 }
 
-func (sr *ScanResult) IsProfine() bool {
+func (sr *ScanResult) IsProfane() bool {
 	return len(sr.words) > 0
 }
 
