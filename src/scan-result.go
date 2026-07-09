@@ -20,7 +20,7 @@ func (wig *WordIndexGenerator) Yield() *WordIndex {
 
 	// fallback for out of range index
 	if wig.cur > len(wig.buff)-1 {
-		return &WordIndex{}
+		return nil
 	}
 
 	wig.cur++

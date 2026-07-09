@@ -47,6 +47,6 @@ func (b *Bacot) AddWord(affix bool, words ...string) *Bacot {
 		b.Dict.AddWords(words...)
 	}
 
-	b.Dict.recount()
+	b.Dict.setUp()
 	return b
 }

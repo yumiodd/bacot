@@ -43,6 +43,7 @@ func (ms *ModalScan) Scan() *ScanResult {
 		var lenW = len(w)
 
 		if !(ms.dict.IsContainLen(lenW)) || !(ms.affix && !ms.dict.IsStopWord(w)) {
+			idx += len(w) + 1
 			continue
 		}
 

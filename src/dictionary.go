@@ -55,44 +55,9 @@ func NewDictionary() *Dictionary {
 		stops: NewDictWord(defaultStopWords...),
 	}
 
-	new.recount()
+	new.setUp()
 
 	return new
-}
-
-func (d *Dictionary) recount() {
-
-	wordCount := map[int]int{}
-	d.min = 99999
-	for _, word := range slices.Collect(maps.Keys(d.words)) {
-		lw := len(word)
-		if lw > d.max {
-			d.max = lw
-		}
-		if lw < d.min {
-			d.min = lw
-		}
-
-		_, ok := wordCount[lw]
-		if ok {
-			wordCount[lw] += 1
-		} else {
-			wordCount[lw] = 1
-		}
-	}
-
-	common := 0
-	maxCount := 0
-	for k, v := range wordCount {
-		if v > maxCount {
-			common = k
-			maxCount = v
-		}
-	}
-	d.majorty = common
-
-	d.wordCount = slices.Collect(maps.Keys(wordCount))
-	slices.Sort(d.wordCount)
 }
 
 func (d *Dictionary) setUp() *Dictionary {
@@ -144,14 +109,6 @@ func (d *Dictionary) DelWords(words ...string) {
 		delete(d.words, w)
 		d.setUp()
 	}
-}
-
-// Remove both stop and badwords
-func (d *Dictionary) Clear() *Dictionary {
-	d.words = DictWords{}
-	d.stops = DictWords{}
-	d.setUp()
-	return nil
 }
 
 func (d *Dictionary) Contains(word string) bool {
