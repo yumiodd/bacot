@@ -138,7 +138,7 @@ b.Text("4njiiing").Scan().IsProfane()   // true (kombinasi maut, tetap kena)
 
 **Kami udah liat semua trik kotor anak internet Indonesia.** Pernah main chatojol? Kami berasal dari dunia sana. *Kami tau kelakuan lo.*
 
-### 🟢 Trim Space — *"Pake Spasi Biar Lolos? WONG SANTRI BAE BISA NGECEK"*
+### 🟢 Trim Space — *"Pake Spasi? Maaf, 2012 Memaanggil, Trik Lo Udah Kedaluwarsa"*
 Coba aja kalo berani.
 
 ```go
