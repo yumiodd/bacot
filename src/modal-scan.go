@@ -50,19 +50,55 @@ func (ms *ModalScan) Scan() *ScanResult {
 		var found = ms.dict.Contains(w)
 
 		// stemming
-		if !found && ms.affix && (lenW > 3) && slices.Contains(prefixes, w[:2]) {
+		if !found && ms.affix && (lenW > 3) {
+
+			var (
+				wTemp  string
+				minIdx rune
+			)
+			if slices.Contains(prefixes3, w[:3]) {
+				wTemp = w[3:]
+				minIdx = 3
+			} else if slices.Contains(prefixes2, w[:2]) {
+				wTemp = w[2:]
+				minIdx = 2
+			}
 
 			// recursive scan / sliding window
-			for l := 0; l <= len(w); l++ {
-				sub := w[l:]
+			for l := 0; l <= len(wTemp); l++ {
+				if found {
+					break
+				}
+
+				if len(wTemp) == 0 {
+					break
+				}
+
+				sub := wTemp[l:]
 
 				for _, r := range ms.dict.GetWordsLen() {
+
 					if r > len(sub) {
 						break
 					}
 
 					word := sub[:r]
+
 					if ms.dict.Contains(word) {
+
+						// kalau ketemu dan awal kata berawal huruf vokal,
+						// maka sebelum huruf ini harus g, keranena pasti dari kata peng- atau meng-
+						if slices.Contains(vocals, rune(word[0])) && !(w[minIdx] == 'g') {
+							continue
+						}
+
+						// jika sisa dari potongan text bukan imbuhan suffix atau
+						// bentuk memiliki suku kata maka kemunkinan besar ini adalah false-negatif
+						rest := wTemp[l+r:]
+						if !slices.Contains(suffixes, rest) || isOneSyllable(wTemp) {
+							continue
+						}
+
 						found = true
 						break
 					}

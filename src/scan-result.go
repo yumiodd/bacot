@@ -44,6 +44,10 @@ func (sr *ScanResult) GetText() string {
 
 func (sr *ScanResult) Censor() string {
 
+	if sr.Count() == 0 {
+		return sr.text
+	}
+
 	c := []rune(sr.praScanText)
 	for _, w := range sr.words {
 		for i := w.Start; i <= w.End; i++ {
@@ -51,7 +55,7 @@ func (sr *ScanResult) Censor() string {
 		}
 	}
 
-	if sr.text == sr.praScanText {
+	if strings.ToLower(sr.text) == sr.praScanText {
 		return string(c)
 	}
 

@@ -13,7 +13,10 @@ var (
 	memPrefix = []rune{'b', 'f', 'p', 'v'}
 	menPrefix = []rune{'c', 'd', 'j', 's', 't'}
 
-	prefixes = []string{"me", "mg", "ng", "pg", "mm", "pm", "mn", "my", "ny", "pe", "di", "te", "be"}
+	prefixes2 = []string{"me", "mg", "ng", "pg", "mm", "pm", "mn", "ny", "pe", "di", "te", "be", "tr", "br"}
+	prefixes3 = []string{"ber", "ter", "per", "mem", "pem"}
+
+	suffixes = []string{"kan", "an", "i", "if", "al", "is", "ni", "ik", "wan", "wati", "man", "is", "or", "er", "tas", "isme", "tas", "nya", "ku", "mu"}
 )
 
 func isOneSyllable(s string) bool {
@@ -26,13 +29,23 @@ func isOneSyllable(s string) bool {
 		vocalFound = 0
 		pascaVoal  = 0
 	)
-	for _, c := range s {
+	for i := 0; i <= len(s); i++ {
+		c := rune(s[i])
+
 		if slices.Contains(vocals, c) {
 			vocalFound += 1
 			if vocalFound > 1 {
 				return false
 			}
 			continue
+		}
+
+		// untuk kasus dimana suku kata terdairi dari -ng atau -ny
+		// karena mereka dihitung 1 bentuk konsonan
+		if c == 'n' {
+			if i < len(s) && (s[i+1] == 'g' || s[i+1] == 'y') {
+				i += 1
+			}
 		}
 
 		if vocalFound > 0 {
@@ -105,7 +118,6 @@ func nasalFusionWord(s string) []string {
 
 	return ret
 }
-
 func dyamicVocalAlteration(s string) []string {
 
 	s = strings.ToLower(s)

@@ -1,11 +1,18 @@
 package bacot
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
 	bacot "github.com/yumiodd/bacot/src"
 )
+
+func Test(t *testing.T) {
+	b := bacot.New()
+
+	fmt.Println(b.Text("Ber mng4s babi ukan").Collect(true).Scan().Censor())
+}
 
 func TestNew(t *testing.T) {
 	b := bacot.New()

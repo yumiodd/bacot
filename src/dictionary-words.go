@@ -3,10 +3,7 @@ package bacot
 // source: https://github.com/drizki/indonesian-badwords/blob/main/src/dict.json
 
 var badwords = []string{
-	"ajig",
-	"ancok",
 	"ancuk",
-	"anjay",
 	"anjing",
 	"anjg",
 	"anjir",
@@ -19,11 +16,8 @@ var badwords = []string{
 	"babi",
 	"bacol",
 	"bacot",
-	"bagong",
 	"bajing",
 	"balegug",
-	"banci",
-	"bangke",
 	"bangsat",
 	"bedebah",
 	"bedegong",
@@ -49,7 +43,6 @@ var badwords = []string{
 	"bulug",
 	"buyan",
 	"cacat",
-	"cepu",
 	"celeng",
 	"cibai",
 	"cibay",
@@ -102,7 +95,6 @@ var badwords = []string{
 	"jembret",
 	"jembut",
 	"jiancok",
-	"jidor",
 	"jilmek",
 	"jurig",
 	"kabulamma",
