@@ -47,62 +47,66 @@ func (ms *ModalScan) Scan() *ScanResult {
 			continue
 		}
 
+		// periksa perkata
 		var found = ms.dict.Contains(w)
 
 		// stemming
 		if !found && ms.affix && (lenW > 3) {
 
 			var (
-				wTemp  string
-				minIdx rune
+				wTemp    string
+				prevChar rune
 			)
 			if slices.Contains(prefixes3, w[:3]) {
 				wTemp = w[3:]
-				minIdx = 3
+				prevChar = rune(w[2])
 			} else if slices.Contains(prefixes2, w[:2]) {
 				wTemp = w[2:]
-				minIdx = 2
+				prevChar = rune(w[1])
+			} else {
+				wTemp = w[0:]
+				prevChar = ' '
 			}
 
 			// recursive scan / sliding window
-			for l := 0; l <= len(wTemp); l++ {
+
+			if len(wTemp) == 0 {
+				break
+			}
+
+			for _, r := range ms.dict.GetWordsLen() {
+
 				if found {
 					break
 				}
-
-				if len(wTemp) == 0 {
+				if r > len(wTemp) {
 					break
 				}
 
-				sub := wTemp[l:]
+				word := wTemp[:r]
 
-				for _, r := range ms.dict.GetWordsLen() {
+				if ms.dict.Contains(word) {
 
-					if r > len(sub) {
-						break
+					// kalau ketemu dan awal kata berawal huruf vokal,
+					// maka sebelum huruf ini harus 'g' keranena pasti dari imbuhan {peng- , meng-}
+					// atau peluluhan huruf 'r' dari imbuhan {per-, ber-, ter-}
+					if slices.Contains(vocals, rune(word[0])) && !(prevChar == 'g' || prevChar == 'r') {
+						continue
 					}
 
-					word := sub[:r]
-
-					if ms.dict.Contains(word) {
-
-						// kalau ketemu dan awal kata berawal huruf vokal,
-						// maka sebelum huruf ini harus g, keranena pasti dari kata peng- atau meng-
-						if slices.Contains(vocals, rune(word[0])) && !(w[minIdx] == 'g') {
-							continue
-						}
-
-						// jika sisa dari potongan text bukan imbuhan suffix atau
-						// bentuk memiliki suku kata maka kemunkinan besar ini adalah false-negatif
-						rest := wTemp[l+r:]
-						if !slices.Contains(suffixes, rest) || isOneSyllable(wTemp) {
-							continue
-						}
-
-						found = true
-						break
+					// jika sisa potongan string adalah 1 suku kata sangat besar
+					// kemungkinan kalau kata ini kata yang berbeda atau katanya sudah berubah makna
+					// walaupun kata aslinya terdaftar penambahan 1 suku kata akan cukup untuk memperkeruh
+					// intensi nya.
+					rest := wTemp[r:]
+					if rest != "" && isOneSyllable(wTemp) {
+						continue
 					}
+
+					found = true
+					break
 				}
+
 			}
 		}
 

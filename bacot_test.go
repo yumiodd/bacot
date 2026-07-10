@@ -11,7 +11,7 @@ import (
 func Test(t *testing.T) {
 	b := bacot.New()
 
-	fmt.Println(b.Text("Ber mng4s babi ukan").Collect(true).Scan().Censor())
+	fmt.Println(b.Text("kamu sekarang jadi babiku").Collect(true).Scan().Censor())
 }
 
 func TestNew(t *testing.T) {
@@ -261,21 +261,41 @@ func TestScanAffixEnabled(t *testing.T) {
 
 func TestScanAffixWithVariousPrefixes(t *testing.T) {
 	b := bacot.New()
-	cases := []struct {
+
+	detected := []struct {
 		input string
 		word  string
+		note  string
 	}{
-		{"mebabi", "babi"},
-		{"pebabi", "babi"},
-		{"diasu", "asu"},
-		{"teasu", "asu"},
-		{"beasu", "asu"},
+		{"mebabi", "babi", "non-vowel-start, prefix me-"},
+		{"pebabi", "babi", "non-vowel-start, prefix pe-"},
+		{"terasu", "asu", "vowel-start, 'r' from ter-"},
+		{"berasu", "asu", "vowel-start, 'r' from ber-"},
+		{"ngasu", "asu", "vowel-start, 'g' from ng-"},
 	}
-	for _, tc := range cases {
-		t.Run(tc.input, func(t *testing.T) {
+	for _, tc := range detected {
+		t.Run(tc.input+"_detected", func(t *testing.T) {
 			res := b.Text(tc.input).Scan()
 			if !res.IsProfane() {
-				t.Errorf("'%s' should be detected (contains '%s')", tc.input, tc.word)
+				t.Errorf("'%s' should be detected (%s)", tc.input, tc.note)
+			}
+		})
+	}
+
+	notDetected := []struct {
+		input string
+		word  string
+		note  string
+	}{
+		{"diasu", "asu", "vowel-start, 'i' is not g/r"},
+		{"teasu", "asu", "vowel-start, 'e' is not g/r"},
+		{"beasu", "asu", "vowel-start, 'e' is not g/r"},
+	}
+	for _, tc := range notDetected {
+		t.Run(tc.input+"_not_detected", func(t *testing.T) {
+			res := b.Text(tc.input).Scan()
+			if res.IsProfane() {
+				t.Errorf("'%s' should NOT be detected (%s)", tc.input, tc.note)
 			}
 		})
 	}
