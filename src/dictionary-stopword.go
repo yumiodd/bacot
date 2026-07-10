@@ -535,7 +535,7 @@ var defaultStopWords = []string{
 	"paling",
 	"panjang",
 	"pantas",
-	"pantanya",
+	"pantasnya",
 	"para",
 	"pasti",
 	"pastilah",
