@@ -11,19 +11,27 @@ type DictWords = map[string]struct{}
 func NewDictWord(words ...string) DictWords {
 	new := map[string]struct{}{}
 	for _, w := range words {
+		w = strings.ToLower(w)
 		new[w] = struct{}{}
 	}
 	return new
 }
 
+type CraftManConfig struct {
+	PrefixNassalFusion bool
+}
+
 type Dictionary struct {
-	words DictWords
-	stops DictWords
+	words          DictWords
+	stops          DictWords
+	falsePositives DictWords
 
 	min       int
 	max       int
 	majorty   int
 	wordCount []int
+
+	histogramFrequentWorldLen map[int]int
 }
 
 func (d *Dictionary) Min() int {
@@ -44,25 +52,24 @@ func (d *Dictionary) GetWordsLen() []int {
 
 func NewDictionary() *Dictionary {
 
-	var moreBadwords []string
+	var words []string
 	for _, w := range badwords {
-		moreBadwords = append(moreBadwords, craftMan(w)...)
+		words = append(words, craftMan(w)...)
 	}
-	moreBadwords = append(moreBadwords, badwords...)
-
 	new := &Dictionary{
-		words: NewDictWord(moreBadwords...),
-		stops: NewDictWord(defaultStopWords...),
+		words:                     NewDictWord(words...),
+		stops:                     NewDictWord(defaultStopWords...),
+		falsePositives:            NewDictWord(falsePositives...),
+		histogramFrequentWorldLen: map[int]int{},
 	}
 
-	new.setUp()
+	new.counting()
 
 	return new
 }
 
-func (d *Dictionary) setUp() *Dictionary {
+func (d *Dictionary) counting() *Dictionary {
 
-	var wordCount = map[int]int{}
 	d.min = 99999
 	for _, word := range slices.Collect(maps.Keys(d.words)) {
 		lw := len(word)
@@ -73,23 +80,23 @@ func (d *Dictionary) setUp() *Dictionary {
 			d.min = lw
 		}
 
-		_, ok := wordCount[lw]
+		_, ok := d.histogramFrequentWorldLen[lw]
 		if ok {
-			wordCount[lw] += 1
+			d.histogramFrequentWorldLen[lw] += 1
 		} else {
-			wordCount[lw] = 1
+			d.histogramFrequentWorldLen[lw] = 1
 		}
 	}
 
 	common := 0
 	maxCount := 0
-	for k, v := range wordCount {
+	for k, v := range d.histogramFrequentWorldLen {
 		if v > maxCount {
 			common = k
 			maxCount = v
 		}
 	}
-	d.wordCount = slices.Collect(maps.Keys(wordCount))
+	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWorldLen))
 	slices.Sort(d.wordCount)
 	d.majorty = common
 
@@ -97,18 +104,90 @@ func (d *Dictionary) setUp() *Dictionary {
 }
 
 func (d *Dictionary) AddWords(words ...string) {
-	for _, w := range words {
-		w = strings.ToLower(w)
-		d.words[w] = struct{}{}
-		d.setUp()
+	if len(words) == 0 {
+		return
 	}
+
+	var add []string
+	for _, w := range words {
+		add = append(add, craftMan(w)...)
+	}
+
+	for _, word := range slices.Collect(maps.Keys(NewDictWord(add...))) {
+
+		// Min Max
+		lw := len(word)
+		if lw > d.max {
+			d.max = lw
+		}
+		if lw < d.min {
+			d.min = lw
+		}
+
+		// Add frequent
+		_, ok := d.histogramFrequentWorldLen[lw]
+		if ok {
+			d.histogramFrequentWorldLen[lw] += 1
+		} else {
+			d.histogramFrequentWorldLen[lw] = 1
+		}
+
+		// add the word
+		d.words[word] = struct{}{}
+	}
+
+	common := 0
+	maxCount := 0
+	for k, v := range d.histogramFrequentWorldLen {
+		if v > maxCount {
+			common = k
+			maxCount = v
+		}
+	}
+
+	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWorldLen))
+	slices.Sort(d.wordCount)
+	d.majorty = common
 }
 
 func (d *Dictionary) DelWords(words ...string) {
-	for _, w := range words {
-		delete(d.words, w)
-		d.setUp()
+	if len(words) == 0 {
+		return
 	}
+
+	for _, word := range words {
+		lenW := len(word)
+
+		if _, ok := d.words[word]; ok {
+			delete(d.words, word)
+		} else {
+			continue
+		}
+
+		d.histogramFrequentWorldLen[lenW] -= 1
+	}
+
+	common := 0
+	maxCount := 0
+	for k, v := range d.histogramFrequentWorldLen {
+		if v > maxCount {
+			common = k
+			maxCount = v
+		}
+	}
+
+	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWorldLen))
+	slices.Sort(d.wordCount)
+
+	if len(d.wordCount) == 0 {
+		d.min = 0
+		d.max = 0
+		d.majorty = 0
+	} else {
+		d.min = d.wordCount[0]
+		d.max = d.wordCount[len(d.wordCount)-1]
+	}
+	d.majorty = common
 }
 
 func (d *Dictionary) Contains(word string) bool {
@@ -125,6 +204,14 @@ func (d *Dictionary) GetDict() DictWords {
 
 func (d *Dictionary) IsStopWord(s string) bool {
 	if _, ok := d.stops[s]; ok {
+		return true
+	}
+
+	return false
+}
+
+func (d *Dictionary) IsFalsePositive(s string) bool {
+	if _, ok := d.falsePositives[s]; ok {
 		return true
 	}
 

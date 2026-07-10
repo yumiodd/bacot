@@ -42,15 +42,22 @@ func (ms *ModalScan) Scan() *ScanResult {
 	for w := range words {
 		var lenW = len(w)
 
-		if !(ms.dict.IsContainLen(lenW)) || !(ms.affix && !ms.dict.IsStopWord(w)) {
+		// jika panjang w tidak termasuk dalam histogram frequent di dict, skip
+		if !(ms.dict.IsContainLen(lenW)) {
 			idx += len(w) + 1
 			continue
 		}
 
-		// periksa perkata
+		// match perkata di kamus
 		var found = ms.dict.Contains(w)
 
-		// stemming
+		// jika match dan ternyata terdaftar dalam stopWord atau falsePositive
+		if (found && ms.dict.IsStopWord(w)) || (found && ms.dict.IsFalsePositive(w)) {
+			idx += len(w) + 1
+			continue
+		}
+
+		// affic - prefix first
 		if !found && ms.affix && (lenW > 3) {
 
 			var (
@@ -77,6 +84,9 @@ func (ms *ModalScan) Scan() *ScanResult {
 				break
 			}
 
+			if w == "bajingan" {
+				print()
+			}
 			for _, r := range ms.dict.GetWordsLen() {
 
 				if found {
@@ -93,8 +103,16 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// kalau ketemu dan awal kata berawal huruf vokal,
 					// maka sebelum huruf ini harus 'g' keranena pasti dari imbuhan {peng- , meng-}
 					// atau peluluhan huruf 'r' dari imbuhan {per-, ber-, ter-}
-					if slices.Contains(vocals, rune(word[0])) && !(prevChar == 'g' || prevChar == 'r') {
+					if slices.Contains(vocals, rune(word[0])) && !(prevChar == 'g' || prevChar == 'r' || prevChar == 'n') {
 						continue
+					}
+
+					// membenarkan jika ada salah pengambilan
+					// memakan -> akan, kerna memangkas [3:] mem-,
+					// karena bisa jadi kata asli adalah makan, me- makan
+					if prevChar == 'e' && word[0] == 'm' && ms.dict.Contains(w[1:]) {
+						found = true
+						break
 					}
 
 					// jika sisa potongan string adalah 1 suku kata sangat besar
@@ -102,14 +120,13 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// walaupun kata aslinya terdaftar penambahan 1 suku kata akan cukup untuk memperkeruh
 					// intensi nya.
 					rest := wTemp[r:]
-					if rest != "" && isOneSyllable(rest) {
+					if rest != "" && !slices.Contains(suffixes, rest) && isOneSyllable(rest) {
 						continue
 					}
 
 					found = true
 					break
 				}
-
 			}
 		}
 
@@ -241,4 +258,16 @@ func (ms *ModalScan) WithLeetSpeak() *ModalScan {
 
 func (ms *ModalScan) GetText() string {
 	return ms.text
+}
+
+func (ms *ModalScan) SanitizeNewLine() *ModalScan {
+	var sb strings.Builder
+	for _, c := range ms.text {
+		if c == '\n' {
+			continue
+		}
+		sb.WriteRune(c)
+	}
+	ms.text = sb.String()
+	return ms
 }

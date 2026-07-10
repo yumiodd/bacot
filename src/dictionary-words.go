@@ -168,9 +168,11 @@ var badwords = []string{
 	"tai",
 	"tbl",
 	"tempik",
+	"tempek",
 	"tete",
 	"tiembokne",
 	"titit",
+	"titid",
 	"toket",
 	"tolir",
 	"tolol",
@@ -181,4 +183,6 @@ var badwords = []string{
 	// Additional, feel free to add
 	"biadab",
 	"nenen",
+	"lacur",
+	"pante",
 }

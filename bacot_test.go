@@ -868,3 +868,13 @@ func TestScanChainedConfigurations(t *testing.T) {
 		t.Error("Chained configuration should detect profanity from leet+trim+unstack")
 	}
 }
+
+func TestU(t *testing.T) {
+
+	res := bacot.New().Text(`Di kawasan pedesaan Jawa Tengah, profesi bajingan masih sangat dihormati oleh masyarakat setempat. Para bajingan ini memainkan peran vital dalam mengendalikan gerobak sapi untuk mengangkut hasil panen dari ladang menuju pasar tradisional. Setiap pagi, sebelum matahari terbit, mereka sudah siap di jalur lintasan.
+Di sudut desa lainnya, seorang pengrajin kayu bernama Ki Karta sedang sibuk memantek pasak-pasak jati untuk membangun rumah joglo pesanan kepala desa. Ia menggunakan palu kayu dan alat pemantek besi khusus peninggalan leluhurnya. Ketelitian sangat dibutuhkan agar struktur rumah berdiri kokoh.
+Sayangnya, nasib Ki Karta hari ini sungguh lacur. Saat sedang beristirahat di bale-bale, kakinya digigit oleh sekumpulan bangsat yang bersarang di sela-sela anyaman bambu. Rasa gatal dan perih yang tiba-tiba menyerang membuatnya panik, sehingga ia mengibaskan kain sarungnya secara membabi buta untuk mengusir serangga hama tersebut.
+Menjelang sore hari, suasana di alun-alun desa perlahan menaik seiring dimulainya festival panen raya. Alunan musik gamelan yang bertindak sebagai penaik semangat berhasil mengumpulkan ratusan warga. Para pemuda yang tergabung dalam kelompok kesenian mulai menempik riuh saat atraksi utama dimulai. Tempik sorak penonton menggema hingga ke ujung balai desa, disaksikan langsung oleh petugas keamanan yang membawa anjing pelacak untuk memastikan situasi tetap kondusif.`).Collect(true).Scan()
+	fmt.Println(res.Censor())
+	fmt.Println(res.Extract())
+}

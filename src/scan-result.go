@@ -1,6 +1,9 @@
 package bacot
 
-import "strings"
+import (
+	"math"
+	"strings"
+)
 
 type WordIndex struct {
 	Word  string
@@ -65,31 +68,24 @@ func (sr *ScanResult) Censor() string {
 		r    = []rune(c)
 	)
 	for i, s := range sr.text {
+
 		if s == ' ' {
 			sb.WriteRune(s)
 			diff++
 			continue
 		}
+
 		if s != r[i-diff] {
-
-			if s < 'z' && s+32 == r[i-diff] {
-				sb.WriteRune(c[i-diff])
+			// apakah versi huruf besarnya
+			if math.Abs(float64(s-r[i-diff])) == 32 {
+				sb.WriteRune(s)
 				continue
 			}
-
-			if v, ok := simpleLeetSpeaks[s]; ok && v == c[i-diff] {
-				sb.WriteRune(c[i-diff])
-				continue
-			} else {
-				sb.WriteRune('*')
-				diff++
-				continue
-			}
+			sb.WriteRune(r[i-diff])
 		}
-		sb.WriteRune(c[i-diff])
 	}
 
-	return sb.String()
+	return string(c)
 }
 
 func (sr *ScanResult) IsProfane() bool {
