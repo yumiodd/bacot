@@ -26,7 +26,6 @@ func (b *Bacot) Text(s string) *ModalScan {
 
 	// Default settings
 	b.modalScan.
-		WithLeetSpeak().
 		UnstackChar().
 		Affix(true)
 

@@ -11,7 +11,7 @@ import (
 func Test(t *testing.T) {
 	b := bacot.New()
 
-	fmt.Println(b.Text("kamu sekarang jadi babiku").Collect(true).Scan().Censor())
+	fmt.Println(b.Text("babi123").Collect(true).Scan().Extract())
 }
 
 func TestNew(t *testing.T) {
@@ -272,6 +272,10 @@ func TestScanAffixWithVariousPrefixes(t *testing.T) {
 		{"terasu", "asu", "vowel-start, 'r' from ter-"},
 		{"berasu", "asu", "vowel-start, 'r' from ber-"},
 		{"ngasu", "asu", "vowel-start, 'g' from ng-"},
+		{"mengasu", "asu", "vowel-start, 'g' from meng-"},
+		{"pengasu", "asu", "vowel-start, 'g' from peng-"},
+		{"menyasu", "asu", "vowel-start, 'y' from meny-"},
+		{"penyasu", "asu", "vowel-start, 'y' from peny-"},
 	}
 	for _, tc := range detected {
 		t.Run(tc.input+"_detected", func(t *testing.T) {
@@ -287,9 +291,9 @@ func TestScanAffixWithVariousPrefixes(t *testing.T) {
 		word  string
 		note  string
 	}{
-		{"diasu", "asu", "vowel-start, 'i' is not g/r"},
-		{"teasu", "asu", "vowel-start, 'e' is not g/r"},
-		{"beasu", "asu", "vowel-start, 'e' is not g/r"},
+		{"diasu", "asu", "vowel-start, 'i' is not g/r/y"},
+		{"teasu", "asu", "vowel-start, 'e' is not g/r/y"},
+		{"beasu", "asu", "vowel-start, 'e' is not g/r/y"},
 	}
 	for _, tc := range notDetected {
 		t.Run(tc.input+"_not_detected", func(t *testing.T) {

@@ -15,6 +15,7 @@ var (
 
 	prefixes2 = []string{"me", "mg", "ng", "pg", "mm", "pm", "mn", "ny", "pe", "di", "te", "be", "tr", "br"}
 	prefixes3 = []string{"ber", "ter", "per", "mem", "pem"}
+	prefixes4 = []string{"meng", "peng", "peny", "meny"}
 
 	suffixes = []string{
 		"kan",
@@ -51,7 +52,7 @@ func isOneSyllable(s string) bool {
 		vocalFound = 0
 		pascaVoal  = 0
 	)
-	for i := 0; i <= len(s); i++ {
+	for i := 0; i < len(s); i++ {
 		c := rune(s[i])
 
 		if slices.Contains(vocals, c) {
@@ -64,7 +65,7 @@ func isOneSyllable(s string) bool {
 			// kalau ketemu vokal dan itu diftong, maka
 			// akan dihitung 1
 			// vocal diftong {ai, au, ei, oi}
-			if i < len(s) {
+			if i < len(s)-2 || (len(s) == 2 && i == 0) {
 				diftongPair := s[i+1]
 				if (c == 'a' && (diftongPair == 'i' || diftongPair == 'u')) ||
 					(c == 'e' && diftongPair == 'i') ||
@@ -93,6 +94,10 @@ func isOneSyllable(s string) bool {
 		if preVocal > 3 || pascaVoal > 3 {
 			return false
 		}
+	}
+
+	if vocalFound == 0 {
+		return false
 	}
 
 	return true

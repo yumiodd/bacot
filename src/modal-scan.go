@@ -57,7 +57,10 @@ func (ms *ModalScan) Scan() *ScanResult {
 				wTemp    string
 				prevChar rune
 			)
-			if slices.Contains(prefixes3, w[:3]) {
+			if slices.Contains(prefixes4, w[:4]) {
+				wTemp = w[4:]
+				prevChar = rune(w[3])
+			} else if slices.Contains(prefixes3, w[:3]) {
 				wTemp = w[3:]
 				prevChar = rune(w[2])
 			} else if slices.Contains(prefixes2, w[:2]) {
@@ -99,7 +102,7 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// walaupun kata aslinya terdaftar penambahan 1 suku kata akan cukup untuk memperkeruh
 					// intensi nya.
 					rest := wTemp[r:]
-					if rest != "" && isOneSyllable(wTemp) {
+					if rest != "" && isOneSyllable(rest) {
 						continue
 					}
 
@@ -127,7 +130,7 @@ func (ms *ModalScan) Scan() *ScanResult {
 	return res
 }
 
-// Reursive will scan in sub-string fashion
+// Recursive will scan in sub-string fashion
 func (ms *ModalScan) RecursiveScan() *ScanResult {
 
 	res := &ScanResult{
@@ -214,6 +217,14 @@ func (ms *ModalScan) TrimSpace() *ModalScan {
 	return ms
 }
 
+// Leet mengandung angka
+// jika case nya := "babi123" -> "babiire" -> "babire"
+// dengan affix "babire" tidak dianggap kata kotor karena "babi" + sukukata, beda makna
+// maka jika lolos di leetspeak, scan kedua kali yang tanpa sanitasi leetspeak
+//
+// kesimpulan:
+// jika input mengandung elemen leetspeak dan lolos scan
+// scan ulang dengan mematikan leet
 func (ms *ModalScan) WithLeetSpeak() *ModalScan {
 
 	var sb strings.Builder
