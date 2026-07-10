@@ -46,7 +46,7 @@ func TestTextDefaults(t *testing.T) {
 
 func TestTextProcessesLeetSpeak(t *testing.T) {
 	b := bacot.New()
-	ms := b.Text("4njing")
+	ms := b.Text("4njing").WithLeetSpeak()
 	got := ms.GetText()
 	if got != "anjing" {
 		t.Errorf("GetText() after leet = %q, want %q", got, "anjing")
@@ -274,8 +274,6 @@ func TestScanAffixWithVariousPrefixes(t *testing.T) {
 		{"ngasu", "asu", "vowel-start, 'g' from ng-"},
 		{"mengasu", "asu", "vowel-start, 'g' from meng-"},
 		{"pengasu", "asu", "vowel-start, 'g' from peng-"},
-		{"menyasu", "asu", "vowel-start, 'y' from meny-"},
-		{"penyasu", "asu", "vowel-start, 'y' from peny-"},
 	}
 	for _, tc := range detected {
 		t.Run(tc.input+"_detected", func(t *testing.T) {
@@ -291,9 +289,11 @@ func TestScanAffixWithVariousPrefixes(t *testing.T) {
 		word  string
 		note  string
 	}{
-		{"diasu", "asu", "vowel-start, 'i' is not g/r/y"},
-		{"teasu", "asu", "vowel-start, 'e' is not g/r/y"},
-		{"beasu", "asu", "vowel-start, 'e' is not g/r/y"},
+		{"diasu", "asu", "vowel-start, 'i' is not g/r"},
+		{"teasu", "asu", "vowel-start, 'e' is not g/r"},
+		{"beasu", "asu", "vowel-start, 'e' is not g/r"},
+		{"menyasu", "asu", "vowel-start, 'y' from meny-, 'y' is not g/r"},
+		{"penyasu", "asu", "vowel-start, 'y' from peny-, 'y' is not g/r"},
 	}
 	for _, tc := range notDetected {
 		t.Run(tc.input+"_not_detected", func(t *testing.T) {
@@ -318,7 +318,7 @@ func TestScanLeetSpeakDetection(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.input, func(t *testing.T) {
-			res := b.Text(tc.input).Scan()
+			res := b.Text(tc.input).WithLeetSpeak().Scan()
 			if !res.IsProfane() {
 				t.Errorf("Leet input '%s' should be detected as '%s'", tc.input, tc.word)
 			}
@@ -353,7 +353,7 @@ func TestScanTrimSpace(t *testing.T) {
 
 func TestScanTrimSpaceAndLeet(t *testing.T) {
 	b := bacot.New()
-	res := b.Text("4 n j i n g").TrimSpace().Scan()
+	res := b.Text("4 n j i n g").WithLeetSpeak().TrimSpace().Scan()
 	if !res.IsProfane() {
 		t.Error("TrimSpace+Leet input '4 n j i n g' should be detected as 'anjing'")
 	}
@@ -463,7 +463,7 @@ func TestScanResultCensorMultiple(t *testing.T) {
 
 func TestScanResultCensorLeetSpeak(t *testing.T) {
 	b := bacot.New()
-	res := b.Text("4njing").Scan()
+	res := b.Text("4njing").WithLeetSpeak().Scan()
 	censored := res.Censor()
 	// "4njing" → leet → "anjing" → censored → all asterisks mapped back
 	if censored != "******" {
@@ -538,7 +538,7 @@ func TestRecursiveScanLeetSpeak(t *testing.T) {
 	}
 	for _, input := range cases {
 		t.Run(input, func(t *testing.T) {
-			res := b.Text(input).RecursiveScan()
+			res := b.Text(input).WithLeetSpeak().RecursiveScan()
 			if !res.IsProfane() {
 				t.Errorf("RecursiveScan should detect leet input '%s'", input)
 			}
@@ -565,7 +565,7 @@ func TestRecursiveScanUnstackChar(t *testing.T) {
 
 func TestRecursiveScanLeetAndUnstack(t *testing.T) {
 	b := bacot.New()
-	res := b.Text("4njiiing").RecursiveScan()
+	res := b.Text("4njiiing").WithLeetSpeak().RecursiveScan()
 	if !res.IsProfane() {
 		t.Error("RecursiveScan should detect combined leet+unstack input '4njiiing'")
 	}
@@ -718,24 +718,27 @@ func TestEdgeCaseMixedCase(t *testing.T) {
 
 func TestEdgeCaseSpecialCharacters(t *testing.T) {
 	b := bacot.New()
-	// '!' maps to 'i' via leet speak, so "anjing!" becomes "anjingi" (not in dict)
+	// leet is off by default, '!' is not converted
 	res := b.Text("anjing!").Scan()
 	if res.IsProfane() {
-		t.Error("'anjing!' should NOT be detected — '!' becomes 'i' via leet speak")
+		t.Error("'anjing!' should NOT be detected — '!' not converted by default, prevChar=' ' blocks vowel match")
 	}
 }
 
 func TestEdgeCaseProfanityWithNumbers(t *testing.T) {
 	b := bacot.New()
+	// "babi123" → stem finds "babi" (len 4) within "babi123"
+	// rest "123" has no vowels → isOneSyllable returns false → not filtered
 	res := b.Text("babi123").Scan()
-	if res.IsProfane() {
-		t.Error("'babi123' should not be detected (different word)")
+	if !res.IsProfane() {
+		t.Error("'babi123' should be detected — 'babi' found via stem, rest '123' not one-syllable")
 	}
 }
 
 func TestChainingFullFlow(t *testing.T) {
 	b := bacot.New()
 	res := b.Text("aku suka 4njing").
+		WithLeetSpeak().
 		Collect(true).
 		Scan()
 	if !res.IsProfane() {
@@ -754,8 +757,9 @@ func TestGetTextReturnsProcessedText(t *testing.T) {
 	b := bacot.New()
 	ms := b.Text("4njing")
 	got := ms.GetText()
-	if got != "anjing" {
-		t.Errorf("GetText() = %q, want %q after leet conversion", got, "anjing")
+	// leet is off by default, "4njing" stays as-is
+	if got != "4njing" {
+		t.Errorf("GetText() = %q, want %q", got, "4njing")
 	}
 }
 

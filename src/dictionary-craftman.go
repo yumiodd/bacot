@@ -80,7 +80,7 @@ func isOneSyllable(s string) bool {
 		// untuk kasus dimana suku kata terdairi dari -ng atau -ny
 		// karena mereka dihitung 1 bentuk konsonan
 		if c == 'n' {
-			if i < len(s) && (s[i+1] == 'g' || s[i+1] == 'y') {
+			if i < len(s)-1 && (s[i+1] == 'g' || s[i+1] == 'y') {
 				i += 1
 			}
 		}
