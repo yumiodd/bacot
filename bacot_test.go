@@ -74,7 +74,7 @@ func TestTextLowercase(t *testing.T) {
 
 func TestAddWordNoAffix(t *testing.T) {
 	b := bacot.New()
-	b.AddWord(false, "xyzword")
+	b.AddWord("xyzword")
 	if !b.Dict.Contains("xyzword") {
 		t.Error("Dict should contain 'xyzword' after AddWord(false, ...)")
 	}
@@ -82,7 +82,7 @@ func TestAddWordNoAffix(t *testing.T) {
 
 func TestAddWordWithAffix(t *testing.T) {
 	b := bacot.New()
-	b.AddWord(true, "babi")
+	b.AddWord("babi")
 	added := b.Dict.Contains("babi")
 	if !added {
 		t.Error("Dict should contain base word 'babi' after AddWord(true, 'babi')")
@@ -91,7 +91,7 @@ func TestAddWordWithAffix(t *testing.T) {
 
 func TestAddWordChain(t *testing.T) {
 	b := bacot.New()
-	b.AddWord(false, "foo").AddWord(false, "bar")
+	b.AddWord("foo").AddWord("bar")
 	if !b.Dict.Contains("foo") || !b.Dict.Contains("bar") {
 		t.Error("AddWord chaining should add all words")
 	}
@@ -99,7 +99,7 @@ func TestAddWordChain(t *testing.T) {
 
 func TestAddWordScansCorrectly(t *testing.T) {
 	b := bacot.New()
-	b.AddWord(false, "customword")
+	b.AddWord("customword")
 	res := b.Text("customword").Scan()
 	if !res.IsProfane() {
 		t.Error("Scan() should detect 'customword' after AddWord")
@@ -813,7 +813,7 @@ func TestScanResultWordIndexPositions(t *testing.T) {
 
 func TestAddWordThenScanNoAffix(t *testing.T) {
 	b := bacot.New()
-	b.AddWord(false, "custombad")
+	b.AddWord("custombad")
 	res := b.Text("custombad").Scan()
 	if !res.IsProfane() {
 		t.Error("Scan should detect custom word added without affix")
@@ -849,7 +849,7 @@ func TestMultipleScansSameInstance(t *testing.T) {
 func TestAddWordNonAffixPreservesDictionaryLengths(t *testing.T) {
 	b := bacot.New()
 	before := len(b.Dict.GetWordsLen())
-	b.AddWord(false, "abcdefghij")
+	b.AddWord("abcdefghij")
 	after := len(b.Dict.GetWordsLen())
 	if after < before {
 		t.Error("Adding a word should not reduce word length count")
@@ -871,10 +871,7 @@ func TestScanChainedConfigurations(t *testing.T) {
 
 func TestU(t *testing.T) {
 
-	res := bacot.New().Text(`Di kawasan pedesaan Jawa Tengah, profesi bajingan masih sangat dihormati oleh masyarakat setempat. Para bajingan ini memainkan peran vital dalam mengendalikan gerobak sapi untuk mengangkut hasil panen dari ladang menuju pasar tradisional. Setiap pagi, sebelum matahari terbit, mereka sudah siap di jalur lintasan.
-Di sudut desa lainnya, seorang pengrajin kayu bernama Ki Karta sedang sibuk memantek pasak-pasak jati untuk membangun rumah joglo pesanan kepala desa. Ia menggunakan palu kayu dan alat pemantek besi khusus peninggalan leluhurnya. Ketelitian sangat dibutuhkan agar struktur rumah berdiri kokoh.
-Sayangnya, nasib Ki Karta hari ini sungguh lacur. Saat sedang beristirahat di bale-bale, kakinya digigit oleh sekumpulan bangsat yang bersarang di sela-sela anyaman bambu. Rasa gatal dan perih yang tiba-tiba menyerang membuatnya panik, sehingga ia mengibaskan kain sarungnya secara membabi buta untuk mengusir serangga hama tersebut.
-Menjelang sore hari, suasana di alun-alun desa perlahan menaik seiring dimulainya festival panen raya. Alunan musik gamelan yang bertindak sebagai penaik semangat berhasil mengumpulkan ratusan warga. Para pemuda yang tergabung dalam kelompok kesenian mulai menempik riuh saat atraksi utama dimulai. Tempik sorak penonton menggema hingga ke ujung balai desa, disaksikan langsung oleh petugas keamanan yang membawa anjing pelacak untuk memastikan situasi tetap kondusif.`).Collect(true).Scan()
+	res := bacot.New().Text("bacotin").Collect(true).Scan()
 	fmt.Println(res.Censor())
 	fmt.Println(res.Extract())
 }

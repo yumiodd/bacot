@@ -4,10 +4,10 @@ import (
 	"strings"
 )
 
-type modalScanOrder int
+type SanitizeOrder int
 
 const (
-	SanitizeNewLine modalScanOrder = iota
+	SanitizeNewLine SanitizeOrder = iota
 	TrimSpace
 	WithLeetSpeak
 	UnstackChar
@@ -17,12 +17,7 @@ type ModalScanConfig struct {
 	Affix   bool
 	Collect bool
 
-	order []modalScanOrder
-
-	// SanitizeNewLine bool 0
-	// TrimWithSpace   bool 1
-	// WithLeetSpeak   bool 2
-	// UnstackChar     bool 3
+	Order []SanitizeOrder
 }
 
 type Bacot struct {
@@ -57,7 +52,7 @@ func (b *Bacot) Text(s string) *ModalScan {
 			b.modalScan.collect = c.Collect
 		}
 
-		for _, f := range c.order {
+		for _, f := range c.Order {
 			switch f {
 			case SanitizeNewLine:
 				b.modalScan.SanitizeNewLine()

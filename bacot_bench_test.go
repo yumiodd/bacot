@@ -38,7 +38,7 @@ func BenchmarkContains(b *testing.B) {
 func BenchmarkAddWord(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		bt.AddWord(false, "newbadword")
+		bt.AddWord("newbadword")
 	}
 }
 

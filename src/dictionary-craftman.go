@@ -19,7 +19,7 @@ var (
 	suffixes = []string{
 		"kan",
 		"an",
-		"i",
+		"i", "in",
 		"nya",
 		"ku",
 		"mu",
