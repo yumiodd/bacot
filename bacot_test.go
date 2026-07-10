@@ -345,7 +345,7 @@ func TestScanUnstackCharDetection(t *testing.T) {
 
 func TestScanTrimSpace(t *testing.T) {
 	b := bacot.New()
-	res := b.Text("a n j i n g").TrimSpace().Scan()
+	res := b.Text("a n j i n g").ClearSpace().Scan()
 	if !res.IsProfane() {
 		t.Error("TrimSpace input 'a n j i n g' should be detected as 'anjing'")
 	}
@@ -353,7 +353,7 @@ func TestScanTrimSpace(t *testing.T) {
 
 func TestScanTrimSpaceAndLeet(t *testing.T) {
 	b := bacot.New()
-	res := b.Text("4 n j i n g").WithLeetSpeak().TrimSpace().Scan()
+	res := b.Text("4 n j i n g").WithLeetSpeak().ClearSpace().Scan()
 	if !res.IsProfane() {
 		t.Error("TrimSpace+Leet input '4 n j i n g' should be detected as 'anjing'")
 	}
@@ -789,7 +789,7 @@ func TestModalScanUnstackCharChaining(t *testing.T) {
 
 func TestModalScanTrimSpaceChaining(t *testing.T) {
 	b := bacot.New()
-	ms := b.Text("test").TrimSpace()
+	ms := b.Text("test").ClearSpace()
 	if ms == nil {
 		t.Fatal("TrimSpace() should return ModalScan for chaining")
 	}
@@ -860,7 +860,7 @@ func TestScanChainedConfigurations(t *testing.T) {
 	b := bacot.New()
 	res := b.Text("4 n j i n g").
 		WithLeetSpeak().
-		TrimSpace().
+		ClearSpace().
 		UnstackChar().
 		Collect(true).
 		Scan()

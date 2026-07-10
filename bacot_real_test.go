@@ -115,8 +115,8 @@ func TestRealProfanityInput(t *testing.T) {
 		{"4su", "leet '4' → 'a'", func(ms *bacot.ModalScan) *bacot.ModalScan { return ms.WithLeetSpeak() }},
 
 		// Obfuscation — trim space
-		{"b a b i", "spasi di antara huruf", func(ms *bacot.ModalScan) *bacot.ModalScan { return ms.TrimSpace() }},
-		{"a s u", "spasi di antara huruf", func(ms *bacot.ModalScan) *bacot.ModalScan { return ms.TrimSpace() }},
+		{"b a b i", "spasi di antara huruf", func(ms *bacot.ModalScan) *bacot.ModalScan { return ms.ClearSpace() }},
+		{"a s u", "spasi di antara huruf", func(ms *bacot.ModalScan) *bacot.ModalScan { return ms.ClearSpace() }},
 
 		// Obfuscation — stacked chars
 		{"kontolll", "huruf 'l' di-stack", nil},
@@ -128,7 +128,7 @@ func TestRealProfanityInput(t *testing.T) {
 
 		// Leet + trim + unstack combined
 		{"4 n j i n g", "leet + spasi", func(ms *bacot.ModalScan) *bacot.ModalScan {
-			return ms.WithLeetSpeak().TrimSpace()
+			return ms.WithLeetSpeak().ClearSpace()
 		}},
 		{"4njiiing", "leet + stack", func(ms *bacot.ModalScan) *bacot.ModalScan {
 			return ms.WithLeetSpeak()

@@ -46,4 +46,32 @@ var (
 		'×': 'x',
 		'¥': 'y',
 	}
+
+	whiteSpace = map[rune]struct{}{
+		9:  {}, // Horizontal tab
+		10: {}, // Line feed
+		11: {}, // Vertical Tabulation
+		12: {}, // Form feed
+		13: {}, // Carriage return
+		32: {}, // Space
+	}
+
+	replaceToSpace = map[rune]struct{}{
+		'-': {},
+		'_': {},
+		'~': {},
+		'|': {},
+		'=': {},
+		'+': {},
+		'.': {},
+		',': {},
+	}
+
+	replaceToClear = map[rune]struct{}{
+		'\'': {},
+		'"':  {},
+		'`':  {},
+		'^':  {},
+		'*':  {},
+	}
 )

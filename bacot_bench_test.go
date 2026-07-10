@@ -265,7 +265,7 @@ func BenchmarkBeratScan10KbContinuous(b *testing.B) {
 	input := tenKbContinuous
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		bt.Text(input).TrimSpace().Scan()
+		bt.Text(input).ClearSpace().Scan()
 	}
 }
 
@@ -273,7 +273,7 @@ func BenchmarkBeratRecursiveScan10KbContinuous(b *testing.B) {
 	input := tenKbContinuous
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		bt.Text(input).TrimSpace().RecursiveScan()
+		bt.Text(input).ClearSpace().RecursiveScan()
 	}
 }
 
@@ -355,5 +355,3 @@ func BenchmarkExtremScanLongSingleWord(b *testing.B) {
 		bt.Text(input).Scan()
 	}
 }
-
-

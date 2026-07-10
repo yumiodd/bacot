@@ -8,7 +8,7 @@ type SanitizeOrder int
 
 const (
 	SanitizeNewLine SanitizeOrder = iota
-	TrimSpace
+	ClearSpace
 	WithLeetSpeak
 	UnstackChar
 )
@@ -56,8 +56,8 @@ func (b *Bacot) Text(s string) *ModalScan {
 			switch f {
 			case SanitizeNewLine:
 				b.modalScan.SanitizeNewLine()
-			case TrimSpace:
-				b.modalScan.TrimSpace()
+			case ClearSpace:
+				b.modalScan.ClearSpace()
 			case WithLeetSpeak:
 				b.modalScan.WithLeetSpeak()
 			case UnstackChar:

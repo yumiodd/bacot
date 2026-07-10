@@ -221,7 +221,7 @@ func (ms *ModalScan) UnstackChar() *ModalScan {
 	return ms
 }
 
-func (ms *ModalScan) TrimSpace() *ModalScan {
+func (ms *ModalScan) ClearSpace() *ModalScan {
 
 	var sb strings.Builder
 	for _, c := range ms.text {
@@ -268,6 +268,60 @@ func (ms *ModalScan) SanitizeNewLine() *ModalScan {
 		}
 		sb.WriteRune(c)
 	}
+	ms.text = sb.String()
+	return ms
+}
+
+func (ms *ModalScan) TrimSpace() *ModalScan {
+
+	var (
+		sb   strings.Builder
+		prev rune
+	)
+
+	for i, c := range ms.text {
+		if i == 0 && c == ' ' {
+			continue
+		}
+		if prev == ' ' && c == ' ' {
+			continue
+		}
+		sb.WriteRune(c)
+		prev = c
+	}
+	ms.text = sb.String()
+
+	return ms
+}
+
+func (ms *ModalScan) ReplaceWhiteSpace() *ModalScan {
+
+	var sb strings.Builder
+	for _, c := range ms.text {
+		if _, ok := whiteSpace[c]; ok && c != ' ' {
+			sb.WriteRune(' ')
+			continue
+		}
+		sb.WriteRune(c)
+	}
+	ms.text = sb.String()
+
+	return ms
+}
+
+func (ms *ModalScan) SanitazeReadSign() *ModalScan {
+
+	var sb strings.Builder
+	for _, c := range ms.text {
+		if _, ok := replaceToSpace[c]; ok {
+			sb.WriteRune(' ')
+		} else if _, ok := replaceToClear[c]; ok {
+			continue
+		} else {
+			sb.WriteRune(c)
+		}
+	}
+
 	ms.text = sb.String()
 	return ms
 }
