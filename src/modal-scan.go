@@ -47,15 +47,14 @@ func (ms *ModalScan) Scan() *ScanResult {
 			idx += len(w) + 1
 			continue
 		}
-
-		// match perkata di kamus
-		var found = ms.dict.Contains(w)
-
-		// jika match dan ternyata terdaftar dalam stopWord atau falsePositive
-		if (found && ms.dict.IsStopWord(w)) || (found && ms.dict.IsFalsePositive(w)) {
+		// jika ternyata terdaftar dalam stopWord atau falsePositive
+		if ms.dict.IsStopWord(w) || ms.dict.IsFalsePositive(w) {
 			idx += len(w) + 1
 			continue
 		}
+
+		// match perkata di kamus
+		var found = ms.dict.Contains(w)
 
 		// affic - prefix first
 		if !found && ms.affix && (lenW > 3) {
@@ -320,6 +319,31 @@ func (ms *ModalScan) SanitazeReadSign() *ModalScan {
 		} else {
 			sb.WriteRune(c)
 		}
+	}
+
+	ms.text = sb.String()
+	return ms
+}
+
+func (ms *ModalScan) SanitizeEmoji() *ModalScan {
+
+	var sb strings.Builder
+	for _, c := range ms.text {
+
+		c := rune(c)
+
+		if ((c >= '\U0001F600') && (c <= '\U0001F64F')) || // Emoticons
+			((c >= '\U0001F300') && (c <= '\U0001F5FF')) || // Misc Symbols & Pictographs
+			((c >= '\U0001F680') && (c <= '\U0001F6FF')) || // Transport & Map Symbols
+			((c >= '\U0001F900') && (c <= '\U0001F9FF')) || // Supplemental Symbols
+			((c >= '\U0001FA70') && (c <= '\U0001FAFF')) || // Symbols & Pictographs Ext-A
+			((c >= '\u2600') && (c <= '\u26FF')) || // Misc Symbols (Blok Lama)
+			((c >= '\u2700') && (c <= '\u27BF')) { // Dingbats (Blok Lama)
+			sb.WriteRune(' ')
+		} else {
+			sb.WriteRune(c)
+		}
+
 	}
 
 	ms.text = sb.String()

@@ -11,6 +11,10 @@ const (
 	ClearSpace
 	WithLeetSpeak
 	UnstackChar
+	// new
+	TrimSpce
+	ReplaceWhiteSpace
+	SanitazeReadSign
 )
 
 type ModalScanConfig struct {
@@ -62,6 +66,12 @@ func (b *Bacot) Text(s string) *ModalScan {
 				b.modalScan.WithLeetSpeak()
 			case UnstackChar:
 				b.modalScan.UnstackChar()
+			case TrimSpce:
+				b.modalScan.TrimSpace()
+			case SanitazeReadSign:
+				b.modalScan.SanitazeReadSign()
+			case ReplaceWhiteSpace:
+				b.modalScan.ReplaceWhiteSpace()
 			}
 		}
 
@@ -70,7 +80,10 @@ func (b *Bacot) Text(s string) *ModalScan {
 
 	// Default settings
 	b.modalScan.
-		SanitizeNewLine().
+		SanitizeEmoji().
+		ReplaceWhiteSpace().
+		SanitazeReadSign().
+		ReplaceWhiteSpace().
 		UnstackChar().
 		Affix(true)
 

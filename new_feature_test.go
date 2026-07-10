@@ -2,6 +2,7 @@ package bacot
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 
 	bacot "github.com/yumiodd/bacot/src"
@@ -42,4 +43,20 @@ func TestSanitizeReadSign(t *testing.T) {
 	if txt != "jallan jalan  ke kota padang  berkota k3 sur@baya" {
 		t.Fatal("output not match")
 	}
+}
+func TestS(t *testing.T) {
+
+	b := bacot.New().Dict.GetDict()
+
+	fmt.Println("string[]{")
+	var s []string
+	for k := range b {
+		s = append(s, k)
+	}
+	slices.Sort(s)
+	for _, k := range s {
+		fmt.Printf("\"%s\",\n", k)
+	}
+	fmt.Println("}")
+
 }
