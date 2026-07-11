@@ -28,10 +28,10 @@ type Dictionary struct {
 
 	min       int
 	max       int
-	majorty   int
+	majority  int
 	wordCount []int
 
-	histogramFrequentWorldLen map[int]int
+	histogramFrequentWordLen map[int]int
 }
 
 func (d *Dictionary) Min() int {
@@ -41,12 +41,8 @@ func (d *Dictionary) Max() int {
 	return d.max
 }
 func (d *Dictionary) Majorty() int {
-	return d.majorty
+	return d.majority
 }
-// IsContainLen adalah pre-filter optimization.
-// Mengecek apakah ada kata di dictionary dengan panjang n.
-// Dipanggil Scan() sebelum map lookup untuk skip token
-// yang pasti tidak ada di dictionary.
 func (d *Dictionary) IsContainLen(n int) bool {
 	return slices.Contains(d.wordCount, n)
 }
@@ -54,12 +50,6 @@ func (d *Dictionary) GetWordsLen() []int {
 	return d.wordCount
 }
 
-// NewDictionary menginisialisasi dictionary dengan:
-//   1. Setiap kata dasar dijalankan melalui craftMan() untuk
-//      menghasilkan semua varian imbuhan (me-, pe-, di-, dll).
-//   2. Stop words dan false positive dictionary di-load.
-//   3. counting() membangun histogram panjang kata untuk
-//      optimasi IsContainLen.
 func NewDictionary() *Dictionary {
 
 	var words []string
@@ -67,10 +57,10 @@ func NewDictionary() *Dictionary {
 		words = append(words, craftMan(w)...)
 	}
 	new := &Dictionary{
-		words:                     NewDictWord(words...),
-		stops:                     NewDictWord(defaultStopWords...),
-		falsePositives:            NewDictWord(falsePositives...),
-		histogramFrequentWorldLen: map[int]int{},
+		words:                    NewDictWord(words...),
+		stops:                    NewDictWord(defaultStopWords...),
+		falsePositives:           NewDictWord(falsePositives...),
+		histogramFrequentWordLen: map[int]int{},
 	}
 
 	new.counting()
@@ -78,14 +68,6 @@ func NewDictionary() *Dictionary {
 	return new
 }
 
-// counting() membangun histogram panjang kata dari dictionary.
-// Data ini digunakan untuk:
-//   1. IsContainLen() — pre-filter token berdasarkan panjang
-//   2. GetWordsLen() — daftar panjang yang tersedia untuk sliding window
-//   3. Majorty() — panjang kata yang paling umum (debug/analisis)
-//
-// Optimization: histogram ini mencegah map lookup yang tidak perlu
-// di Scan() dengan skip token jika panjangnya tidak ada di dictionary.
 func (d *Dictionary) counting() *Dictionary {
 
 	d.min = 99999
@@ -98,25 +80,25 @@ func (d *Dictionary) counting() *Dictionary {
 			d.min = lw
 		}
 
-		_, ok := d.histogramFrequentWorldLen[lw]
+		_, ok := d.histogramFrequentWordLen[lw]
 		if ok {
-			d.histogramFrequentWorldLen[lw] += 1
+			d.histogramFrequentWordLen[lw] += 1
 		} else {
-			d.histogramFrequentWorldLen[lw] = 1
+			d.histogramFrequentWordLen[lw] = 1
 		}
 	}
 
 	common := 0
 	maxCount := 0
-	for k, v := range d.histogramFrequentWorldLen {
+	for k, v := range d.histogramFrequentWordLen {
 		if v > maxCount {
 			common = k
 			maxCount = v
 		}
 	}
-	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWorldLen))
+	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWordLen))
 	slices.Sort(d.wordCount)
-	d.majorty = common
+	d.majority = common
 
 	return d
 }
@@ -143,11 +125,11 @@ func (d *Dictionary) AddWords(words ...string) {
 		}
 
 		// Add frequent
-		_, ok := d.histogramFrequentWorldLen[lw]
+		_, ok := d.histogramFrequentWordLen[lw]
 		if ok {
-			d.histogramFrequentWorldLen[lw] += 1
+			d.histogramFrequentWordLen[lw] += 1
 		} else {
-			d.histogramFrequentWorldLen[lw] = 1
+			d.histogramFrequentWordLen[lw] = 1
 		}
 
 		// add the word
@@ -156,16 +138,16 @@ func (d *Dictionary) AddWords(words ...string) {
 
 	common := 0
 	maxCount := 0
-	for k, v := range d.histogramFrequentWorldLen {
+	for k, v := range d.histogramFrequentWordLen {
 		if v > maxCount {
 			common = k
 			maxCount = v
 		}
 	}
 
-	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWorldLen))
+	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWordLen))
 	slices.Sort(d.wordCount)
-	d.majorty = common
+	d.majority = common
 }
 
 func (d *Dictionary) DelWords(words ...string) {
@@ -182,30 +164,30 @@ func (d *Dictionary) DelWords(words ...string) {
 			continue
 		}
 
-		d.histogramFrequentWorldLen[lenW] -= 1
+		d.histogramFrequentWordLen[lenW] -= 1
 	}
 
 	common := 0
 	maxCount := 0
-	for k, v := range d.histogramFrequentWorldLen {
+	for k, v := range d.histogramFrequentWordLen {
 		if v > maxCount {
 			common = k
 			maxCount = v
 		}
 	}
 
-	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWorldLen))
+	d.wordCount = slices.Collect(maps.Keys(d.histogramFrequentWordLen))
 	slices.Sort(d.wordCount)
 
 	if len(d.wordCount) == 0 {
 		d.min = 0
 		d.max = 0
-		d.majorty = 0
+		d.majority = 0
 	} else {
 		d.min = d.wordCount[0]
 		d.max = d.wordCount[len(d.wordCount)-1]
 	}
-	d.majorty = common
+	d.majority = common
 }
 
 func (d *Dictionary) Contains(word string) bool {
