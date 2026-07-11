@@ -130,8 +130,14 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// berubah makna. Contoh: "babiru" → "babi" + "ru"
 					// "ru" adalah 1 suku kata → bukan "babi" ❌
 					rest := wTemp[r:]
-					if rest != "" && !slices.Contains(suffixes, rest) && isOneSyllable(rest) {
-						continue
+					if rest != "" {
+						if !slices.Contains(suffixes, rest) {
+							continue
+						}
+
+						if isOneSyllable(rest) {
+							continue
+						}
 					}
 
 					found = true
