@@ -37,13 +37,14 @@ func New() *Bacot {
 }
 
 // Text() menjalankan pipeline preprocessing default:
-//   Emoji → ReplaceWhiteSpace → SanitizeReadSign → ReplaceWhiteSpace → UnstackChar → Affix(true)
+//
+//	Emoji → ReplaceWhiteSpace → SanitizeReadSign → ReplaceWhiteSpace → UnstackChar → Affix(true)
 //
 // Urutan ini penting karena:
-//   1. Emoji dihapus dulu biar ga jadi noise
-//   2. Tanda baca diganti spasi biar tokenisasi akurat
-//   3. Unstack dilakukan setelah leet speak (default leet tidak aktif, perlu manual)
-//   4. Affix detection aktif default, bisa dimatikan dengan Affix(false)
+//  1. Emoji dihapus dulu biar ga jadi noise
+//  2. Tanda baca diganti spasi biar tokenisasi akurat
+//  3. Unstack dilakukan setelah leet speak (default leet tidak aktif, perlu manual)
+//  4. Affix detection aktif default, bisa dimatikan dengan Affix(false)
 //
 // Config() bisa override pipeline ini. Lihat ModalScanConfig.Order.
 func (b *Bacot) Text(s string) *ModalScan {
@@ -121,5 +122,10 @@ func (b *Bacot) AddWord(words ...string) *Bacot {
 
 func (b *Bacot) DelWord(words ...string) *Bacot {
 	b.Dict.DelWords(words...)
+	return b
+}
+
+func (b *Bacot) AddFalsePositive(words ...string) *Bacot {
+	b.Dict.AddFalsePositif(words...)
 	return b
 }

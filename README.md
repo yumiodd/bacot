@@ -210,8 +210,9 @@ ScanLongSingleWord-16                14,616  81,681 ns/op  93,280 B/op     34 al
 ## FAQ
 
 **Dictionary cuma 200 kata?**  
-200+ kata dasar. Tiap kata dasar generate varian imbuhan — jadinya ribuan. Kurang? `AddWord()`. Atau buka PR. *Makin kotor makin kita senang.*,
-gunakan `AddFalsePosive()` untuk menambal kesalahan *hehe*
+200+ kata dasar. Tiap kata dasar generate varian imbuhan — jadinya ribuan. Kurang? `AddWord()`. Atau buka PR. *Makin kotor makin kita senang.*
+
+Gunakan `AddFalsePositive()` untuk menambal kesalahan *hehe.*
 
 **Thread safe?**  
 Enggak. `Bacot` pake pointer sharing. Lo mau pake di banyak goroutine? Buat instance baru tiap goroutine atau bungkus `sync.Mutex`. *nekad, resiko tanggung sendiri*
