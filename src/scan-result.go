@@ -50,16 +50,15 @@ func (sr *ScanResult) Censor() string {
 	if sr.Count() == 0 {
 		return sr.text
 	}
+	if strings.ToLower(sr.text) == sr.praScanText {
+		return sr.text
+	}
 
 	c := []rune(sr.praScanText)
 	for _, w := range sr.words {
 		for i := w.Start; i <= w.End; i++ {
 			c[i] = '*'
 		}
-	}
-
-	if strings.ToLower(sr.text) == sr.praScanText {
-		return string(c)
 	}
 
 	var (

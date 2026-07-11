@@ -77,15 +77,10 @@ func (ms *ModalScan) Scan() *ScanResult {
 				prevChar = ' '
 			}
 
-			// recursive scan / sliding window
-
 			if len(wTemp) == 0 {
 				break
 			}
 
-			if w == "bajingan" {
-				print()
-			}
 			for _, r := range ms.dict.GetWordsLen() {
 
 				if found {
@@ -96,7 +91,6 @@ func (ms *ModalScan) Scan() *ScanResult {
 				}
 
 				word := wTemp[:r]
-
 				if ms.dict.Contains(word) {
 
 					// kalau ketemu dan awal kata berawal huruf vokal,

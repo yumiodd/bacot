@@ -18,42 +18,42 @@ func TestTweet(t *testing.T) {
 
 	b := bacot.New()
 
-	file, err := os.Open("data_tweet_2.csv")
+	file, err := os.Open("data_tweet.csv")
 	if err != nil {
 		t.Fatal("cant open file")
 	}
 	defer file.Close()
 
 	reader := csv.NewReader(file)
-	reader.Comma = '\t'
+	// reader.Comma = '\t'
 
 	data, err := reader.ReadAll()
 	if err != nil {
 		fmt.Println(err.Error())
 		t.Fatal("cant read all")
 	}
-	var (
-		pass int
-		FN   int
-		FP   int
-	)
+	// var (
+	// 	pass int
+	// 	FN   int
+	// 	FP   int
+	// )
 	for _, d := range data[1:] {
 
-		res := b.Text(d[1]).Scan()
-		isBad := d[0] == "HS"
+		res := b.Text(d[0]).Scan()
+		// isBad := d[0] == "HS"
 
-		if res.IsProfane() == isBad {
-			pass += 1
-		} else if res.IsProfane() && isBad == false {
+		// if res.IsProfane() == isBad {
+		// 	pass += 1
+		// } else if res.IsProfane() && isBad == false {
 
-			FP += 1
-		} else if !res.IsProfane() && isBad == true {
+		// 	FP += 1
+		// } else if !res.IsProfane() && isBad == true {
 
-			FN += 1
-		}
+		// 	FN += 1
+		// }
 
 		if res.IsProfane() {
-			fmt.Printf("TEXT: %s (%s)\n", d[1], res.First())
+			fmt.Printf("TEXT: (%s) %s\n", res.First(), d[0])
 		}
 	}
 

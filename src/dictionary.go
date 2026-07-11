@@ -9,7 +9,7 @@ import (
 type DictWords = map[string]struct{}
 
 func NewDictWord(words ...string) DictWords {
-	new := map[string]struct{}{}
+	new := make(map[string]struct{}, 5000)
 	for _, w := range words {
 		w = strings.ToLower(w)
 		new[w] = struct{}{}
@@ -199,7 +199,11 @@ func (d *Dictionary) Contains(word string) bool {
 }
 
 func (d *Dictionary) GetDict() DictWords {
-	return d.words
+
+	var words = DictWords{}
+	maps.Copy(words, d.words)
+
+	return words
 }
 
 func (d *Dictionary) IsStopWord(s string) bool {
