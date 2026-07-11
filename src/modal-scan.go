@@ -117,7 +117,6 @@ func (ms *ModalScan) Scan() *ScanResult {
 						continue
 					}
 
-					// TODO: koreksi lagi.
 					// Koreksi over-stripping:
 					// "memakan" → strip "mem-" → "akan"
 					// Tapi kata asli adalah "makan". Cek juga w[2:] = "emakan".
