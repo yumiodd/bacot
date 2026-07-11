@@ -1,123 +1,114 @@
-![bacot banner](./bacot.png)
-
 # Bacot
-### *"Mulut lo bacot — tapi bacot filter kata-kata lo."*
 
-**Bacot** adalah profanity filter untuk Bahasa Indonesia yang handle affix (imbuhan), leet speak, dan unstack character. Zero dependency. Sekali `go get` langsung jalan.
+Filter kata kasar untuk Bahasa Indonesia. Zero dependency.
 
-Bahasa Indonesia aglutinatif — satu kata dasar bisa berubah dengan berbagai imbuhan (`babi` → `mebabi`, `pebabi`, `dibabi`). Bacot handle semua varian ini otomatis tanpa perlu daftarin satu-satu.
+```
+b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
+b.Text("babi dan anjing").Collect(true).Scan().Censor() // "**** dan ******"
+```
 
----
+Bahasa Indonesia itu aglutinatif. `babi` bisa jadi `mebabi`, `pebabi`, `dibabi`, `kebabi`, `memperbabikan`. Coba lo handle pake `strings.Contains` sendirian — *good luck, you'll need it.*
 
-## 🔧 Installation
+Bacot lahir karena capek liat developer nulis regex panjang 20 baris cuma buat deteksi "4njiiing". *Kami sudah melalui masa gelap itu. Kami tidak akan kembali.*
+
+## Kenapa bukan regex doang?
+
+| Masalah | Contoh | Regex | Bacot |
+|---------|--------|-------|-------|
+| Imbuhan | `mebabi`, `penganjing` | lo harus bikin pattern buat tiap imbuhan | otomatis |
+| Leet speak | `4njing`, `8abi`, `k0nt0l` | `[4a][nN]...` — capek? | built-in |
+| Unstack | `anjiiiiing` | `anj+ing` — gampang sih, tapi itu baru 1 kata | otomatis |
+| False positive | `babiru` bukan `babi` | lo bikin pengecualian? ya nulis lagi | udah di-handle |
+| 10Kb censor | 4000 kata kasar | 5-20ms, rerata CPU merintih | 172µs, CPU nggak sadar |
+
+## Instalasi
 
 ```go
 import bacot "github.com/yumiodd/bacot/src"
 ```
 
-Itu aja. Nggak ada dependency lain. *Kami bukan npm.*
+Nggak ada `go get` 20 kali. Nggak ada `vendor/` penuh misteri. Nggak ada `replace` directive yang bikin lo gregetan.
 
----
+*Ini Go, bukan Node.js.*
 
-## 🚀 Quick Start
-
-```go
-b := bacot.New()
-
-res := b.Text("4njiiing").WithLeetSpeak().Scan()
-res.IsProfane() // true
-res.Censor()    // "*******"
-
-res := b.Text("babi dan anjing").Collect(true).Scan()
-res.Count()     // 2
-res.Extract()   // ["babi", "anjing"]
-```
-
-> **⚠️:** Jangan `New()` tiap scan. Buat satu instance, pakai berulang. Ini bukan sikat gigi.
-
----
-
-## 📋 Fitur
-
-| Fitur | Kerjaannya |
-|-------|-----------|
-| **Affix-aware** | `mebabi`? `penganjing`? Semua kena. Bacot ngerti Bahasa Indonesia pake imbuhan. |
-| **Leet speak** | `4njing` → `anjing`, `8abi` → `babi`. *Kami bukan polisi bahasa, kami lebih dari itu.* |
-| **Unstack char** | `anjiiiiiiiing` → `anjing`. Pake karakter berulang? *Nice try.* |
-| **Dua mode scan** | `Scan()` per kata. `RecursiveScan()` substring, sampe ke akar. |
-| **Custom dictionary** | `AddWord()`, `DelWord()` — lo punya kata kesayangan? Tambahin aja. |
-| **Censor otomatis** | Mapping leet → `*`. User nulis `4njing`, sensor balikin `******`. |
-| **Zero dependencies** | Cuma stdlib Go. **Zero.** Kalau lo nemu dependency lain, *itu halusinasi lo.* |
-| **Collection mode** | Mau dikumpulin semua match? `Collect(true)`. Biar sekalian dihajar. |
-
----
-
-## 📖 Cara Pake
-
-### Basic Detection
+## Quick Start
 
 ```go
 b := bacot.New()
-res := b.Text("anjing").Scan()
-res.IsProfane() // true
-res.Censor()    // "******"
-res.Extract()   // ["anjing"]
+
+// Cek — biar tau
+b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
+
+// Sensor — biar aman
+b.Text("babi dan anjing").Collect(true).Scan().Censor() // "**** dan ******"
+
+// Hitung — biar puas
+res := b.Text("babi dan anjing asu kontol").Collect(true).Scan()
+res.Count()   // 4
+res.Extract() // ["babi", "anjing", "asu", "kontol"]
+res.First()   // "babi"
+res.Last()    // "kontol"
 ```
 
-### Collect Mode — *"Kumpulin Semua Biar Puas"*
+> `New()` itu bikin dictionary + generate ribuan varian imbuhan. Jangan dipanggil tiap scan — reuse instance. *Ini bukan `new StringBuilder()` tiap loop.*
+
+## Fitur
+
+### Affix-aware
+
+"mebabi" itu "babi" pake imbuhan `me-`. `penganjing` itu `peng-` + `anjing`. Bacot tau ini karena dia pake **sliding window**: stripping prefix Indonesia satu per satu sampe ketemu kata dasarnya.
 
 ```go
-res := b.Text("babi dan anjing").Collect(true).Scan()
-res.Count()     // 2
-res.Extract()   // ["babi", "anjing"]
-res.First()     // "babi"
-res.Last()      // "anjing"
+b.Text("mebabi").Scan().IsProfane()      // true
+b.Text("mebabi").Affix(false).Scan()...  // false — kalo mau exact match aja
 ```
 
-Default `Collect(false)` = berhenti di match pertama. **Kayak mantan: tau satu aja udah cukup.**
+Yang didukung: `me-`, `pe-`, `di-`, `te-`, `be-`, `ber-`, `ter-`, `per-`, `meng-`, `peng-`, `men-`, `pen-`, `meny-`, `peny-`, `mem-`, `pem-`, `ng-`, `ny-`.
 
-### Custom Words — *"Update Kamus, Update Perasaan"*
+Bonus: **nasal fusion**. `memukul` itu `mem-` + `pukul` (p-nya luluh). Di kamus Bacot cuma ada `pukul`, tapi `memukul` tetep kedeteksi. *Seperti mantan — apapun kamu kedoknya, tetap ketahuan.*
+
+### Leet Speak
+
+`4 → a`, `8 → b`, `3 → e`, `@ → a`, `$ → s`, `! → i`, `0 → o`, `7 → t`, `5 → s`, `# → h`, dan masih banyak lagi.
 
 ```go
-b.AddWord("umiakucihanya")
-b.AddWord("pukul") // otomatis detect mepukul, dipukul, pemukul
+b.Text("4njing").WithLeetSpeak().Scan().IsProfane() // true
+// 4 → a | njing → anjing | match ✅
 ```
 
-### Affix Mode
+Leet speak nggak aktif default karena butuh extra pass. Tapi kalo lo tau user base lo banyak pake leet, aktifkan aja.
+
+### Unstack Char
 
 ```go
-b.Text("mebabi").Scan().IsProfane()      // true (default ON)
-b.Text("mebabi").Affix(false).Scan()...  // false
+b.Text("anjiiiiing").Scan().IsProfane() // true
+// anji{i}ng → anjing | match ✅
 ```
 
-Di Indonesia, "mebabi" tetep "babi". *Jangan munafik.*
+User kira pake huruf berulang lolos? *Apakah ini pertama kalinya lo berhadapan dengan internet Indonesia?*
 
-### Recursive Scan — *"Nakal Kamu"*
+### Recursive Scan
 
 ```go
-b.Text("xbabi").Scan().IsProfane()           // false
-b.Text("xbabi").RecursiveScan().IsProfane()  // true
+b.Text("xbabi").RecursiveScan().IsProfane() // true
 ```
 
-Mau lo taruh apapun di depan kata kasar, tetap ketahuan. *Udah, nyerah aja.*
+Nyari substring match di dalam token. Nge-scan dari tiap posisi karakter di kata. Jadi kalau user lo kreatif nambahin prefiks acak — tetap kena.
 
-### Leet Speak & Unstack
+Konsekuensi: O(token_length × dict_variants). Buat kata normal (<20 char) — nggak kerasa. Buat teks 10Kb tanpa spasi — ya agak mikir dikit. *Worst case complexity: istilah keren buat "bakal lebih lambat dikit".*
+
+### Custom Dictionary
 
 ```go
-b.Text("4njing").WithLeetSpeak().Scan().IsProfane()   // true
-b.Text("anjiiing").Scan().IsProfane()                  // true (unstack default ON)
-b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane()  // true (kombinasi)
+b.AddWord("pukul")     // otomatis detect memukul, dipukul, pemukul, mukul
+b.AddWord("setan")     // + nyetan, kesetanan, dll
+b.Dict.AddWords("custom")
+b.Dict.DelWords("anjing")
 ```
 
-### Trim Space — *"Pake Spasi? Trik Lo Udah Kedaluwarsa"*
+Istilah baru muncul tiap hari. Lo tinggal `AddWord()`, kami urus varian imbuhannya.
 
-```go
-b.Text("a n j i n g").TrimSpace().Scan().IsProfane() // true
-```
-
-**Pokoknya kena.**
-
-### Config — *"Sekali Atur, Scan Enteng"*
+### Config — biar nggak repot chaining manual tiap scan
 
 ```go
 b.Config(&bacot.ModalScanConfig{
@@ -128,89 +119,48 @@ b.Config(&bacot.ModalScanConfig{
         bacot.UnstackChar,
     },
 })
-b.Text("4njiiing").Scan().IsProfane() // otomatis
+b.Text("4njiiing").Scan().IsProfane() // true — leet + unstack otomatis
 ```
 
-### Dictionary
+## Cara Kerja
 
-```go
-b.Dict.Contains("anjing")    // true
-b.Dict.IsStopWord("dan")     // true
-b.Dict.AddWords("tai", "keparat")
-b.Dict.DelWords("anjing")
-b.Dict.GetDict()             // map[string]struct{}
-```
-
-### Generator
-
-```go
-gen := res.Generator()
-for w := gen.Yield(); w != nil; w = gen.Yield() {
-    fmt.Println(w.Word)
-}
-```
-
----
-
-## ⚙️ Cara Kerjanya
-
-### Pipeline
+Pipeline dari input sampe hasil:
 
 ```
 Input → ToLower → [Sanitize] → Scan → ScanResult ─→ Censor()
-                                                    ├→ IsProfane()
-                                                    ├→ Extract()
-                                                    ├→ Count()
-                                                    └→ Generator()
+                                                     ├→ IsProfane()
+                                                     ├→ Extract()
+                                                     └→ Count()
 ```
 
-**Precomputed WordIndex** — `Scan()` menghitung posisi start/end tiap kata kotor sekali. Setelah itu `Censor()`, `Extract()`, `Count()` tinggal pakai data itu tanpa scan ulang. Ini yang bikin Censor cepat — replace in-place berdasarkan index yang udah ada.
+Arsitektur:
 
-**Length histogram** — token yang panjangnya ga ada di dictionary langsung di-skip sebelum map lookup. Hemat operasi ga perlu.
+1. **Precomputed WordIndex.** `Scan()` itu bagian paling berat — dia nge-tokenize, stripping affix, ngecek dictionary. Tapi hasilnya adalah `[]WordIndex` yang nyimpen posisi start/end tiap kata kotor. `Censor()` tinggal replace `*` di posisi itu — O(n) per kata, O(1) per replace. Nggak perlu scan ulang. *Bayangin kayak index di database — alokasi sekali, query berkali-kali.*
 
-### Sliding Window Affix Detection
+2. **Length histogram.** Sebelum map lookup, Bacot ngecek: "apa ada kata di dictionary dengan panjang segini?". Kalau nggak ada, token langsung di-skip. Ini pre-filter O(log n) yang ngurangin map lookup nggak perlu. *Micro-optimization yang hasilnya keliatan di 10Kb.*
 
-Kata berimbuhan? Bacot geser-geser kayak swipe Tinder:
+3. **Affix variant generation (`craftMan`).** Di `NewDictionary()`, setiap kata dasar di-generate semua varian imbuhan yang mungkin. Inilah kenapa `New()` agak berat (beberapa ratus µs) tapi scan jadi cepat — cukup exact match di map, nggak perlu stemming di runtime. *Tradeoff klasik: bayar sekali di init, gratis selamanya.*
 
-```
-Input: "mebabi"
-├── "mebabi" → cek dictionary? gak ada
-├── "ebabi" → coba-coba
-│   └── "babi" → 🚨 DITEMUKAN!
-```
+4. **False positive filter.** Kalau setelah stripping prefix ditemukan match, tapi sisa stringnya cuma 1 suku kata — kemungkinan itu bukan kata imbuhan beneran. Contoh: `"babiru"` → strip `me-` gagal → strip `di-` gagal → ambil stem `"babi"` (ditemukan!) → sisa `"ru"` = 1 suku kata → skip. *Heuristic sederhana yang manjur buat ngejaga akurasi.*
 
-Ditambah validasi nasal fusion: `memukul` (mem- + pukul, p luluh), `menggali` (meng- + gali, g tetap). Dan filter false positive: sisa 1 suku kata setelah stem = kemungkinan kata udah beda makna.
-
-### RecursiveScan
-
-```
-Input: "xbabi"
-├── xbabi → gak ada
-├── babi  → 🚨 KETANGKAP!
-```
-
-*Gak perlu ML, gak perlu neural network. Cuma geser-geser doang.*
-
----
-
-## 🏎️ Benchmark
+## Benchmark
 
 Intel i5-13400, Linux, Go 1.26.4.
 
-| Skala | Operasi | Waktu |
+| Level | Operasi | Waktu |
 |-------|---------|-------|
-| 🟢 Ringan | `Contains` lookup | 5.7 ns |
-| 🟢 Ringan | `Scan` kalimat | 531 ns |
-| 🟢 Ringan | `Censor` kata | 0.89 ns |
-| 🟡 Sedang | `Scan` paragraf (5 kalimat) | 10.6 µs |
-| 🔴 Berat | `Scan` 10Kb (1000 kata) | 344 µs |
-| 🔴 Berat | `Censor` 10Kb (4000 match) | 172 µs |
-| ⚫ Ekstrim | `Scan` 100Kb | 20 ms |
+| Ringan | `Contains` lookup aja | 5.7 ns |
+| Ringan | `Scan` kalimat pendek | 531 ns |
+| Ringan | `Censor` kata tunggal | 0.89 ns |
+| Sedang | `Scan` paragraf 5 kalimat | 10.6 µs |
+| Berat | `Scan` 10Kb (1000 kata) | 344 µs |
+| Berat | `Censor` 10Kb (4000 match) | 172 µs |
+| Ekstrim | `Scan` 100Kb lorem | 20 ms |
 
-**Singkatnya:** 2 juta kalimat per detik. Bahkan skenario terberat tetep sub-millisecond. Intel i5 aja nggak kerasa, apalagi server production.
+*"2 juta kalimat per detik."* — kata siapa? Benchmark bilang gitu. Intel i5 aja nggak kerasa, apalagi server production lo.
 
 <details>
-<summary>📊 Detail benchmark</summary>
+<summary>📊 Raw benchmark — buat yang demen angka</summary>
 
 ```
 goos: linux | goarch: amd64 | cpu: 13th Gen Intel(R) Core(TM) i5-13400
@@ -256,41 +206,25 @@ ScanLongSingleWord-16                14,616  81,681 ns/op  93,280 B/op     34 al
 ```
 </details>
 
----
+## FAQ
 
-## ❓ FAQ
+**Dictionary cuma 200 kata?**  
+200+ kata dasar. Tiap kata dasar generate varian imbuhan — jadinya ribuan. Kurang? `AddWord()`. Atau buka PR. *Makin kotor makin kita senang.*
 
-### Kodenya sederhana, emang work?
+**Thread safe?**  
+Enggak. `Bacot` pake pointer sharing. Lo mau pake di banyak goroutine? Buat instance baru tiap goroutine atau bungkus `sync.Mutex`. *Kami serahkan pada kebijaksanaan lo.*
 
-85 test, 34 benchmark, zero dep. Kadang solusi terbaik ya yang sederhana.
+**Kok ada typo di nama method?**  
+(`TrimSpce`, `SanitazeReadSign`, `Majorty`) — iya. Ini legacy. Backward compatibility. Kapan-kapan di-major version fix. Atau — *lo bisa benerin sendiri trus buka PR. Kami nggak gigit.*
 
-### Dictionary cuma 190 kata?
+**Cocok buat production?**  
+85 test, 34 benchmark, zero dep. Udah dipake. Nggak bakal nyebabin outage. Kalaupun ada yang lolos, tinggal tambahin dictionary.
 
-200+ kata dasar. Tapi tiap kata otomatis di-generate varian imbuhan jadi ribuan (mebabi, pebabi, dibabi, menjing, penganjing, dll). Kalau kurang tinggal `AddWord()`. PR diterima. *Makin kotor makin kita senang.*
+## Credits
 
-### Thread safe?
+- Dictionary: [indonesian-badwords](https://github.com/drizki/indonesian-badwords)
+- Stop words: [go-sastrawi](https://github.com/truthfulses/go-sastrawi)
 
-Buat instance baru per goroutine atau bungkus `sync.Mutex`.
-
-### Kok ada method typo?
-
-(`TrimSpce`, `SanitazeReadSign`, `Majorty`) — iya. Backward compatibility. Mungkin next major version dibenerin. Atau lo benerin sendiri.
-
-### Bisa dipake production?
-
-85 test, 34 benchmark, zero dep. Nggak bakal numpukin memory server lo.
-
----
-
-## 🙏 Credits
-
-- **Dictionary:** [indonesian-badwords](https://github.com/drizki/indonesian-badwords) — *makasih bang udah dikumpulin.*
-- **Stop Words:** [go-sastrawi](https://github.com/truthfulses/go-sastrawi) — *pinjem, makasi.*
-
-Kontribusi kata kasar baru? Buka aja PR. 😄
-
----
-
-## ⚖️ License
+## License
 
 [MIT](https://choosealicense.com/licenses/mit/)

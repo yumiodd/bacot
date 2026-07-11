@@ -120,8 +120,8 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// TODO: koreksi lagi.
 					// Koreksi over-stripping:
 					// "memakan" → strip "mem-" → "akan"
-					// Tapi kata asli adalah "makan". Cek juga w[1:] = "emakan".
-					if prevChar == 'e' && word[0] == 'm' && ms.dict.Contains(w[1:]) {
+					// Tapi kata asli adalah "makan". Cek juga w[2:] = "emakan".
+					if prevChar == 'm' && word[0] == 'm' && ms.dict.Contains(w[2:]) {
 						found = true
 						break
 					}
