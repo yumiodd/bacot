@@ -43,6 +43,10 @@ func (d *Dictionary) Max() int {
 func (d *Dictionary) Majorty() int {
 	return d.majorty
 }
+// IsContainLen adalah pre-filter optimization.
+// Mengecek apakah ada kata di dictionary dengan panjang n.
+// Dipanggil Scan() sebelum map lookup untuk skip token
+// yang pasti tidak ada di dictionary.
 func (d *Dictionary) IsContainLen(n int) bool {
 	return slices.Contains(d.wordCount, n)
 }
@@ -50,6 +54,12 @@ func (d *Dictionary) GetWordsLen() []int {
 	return d.wordCount
 }
 
+// NewDictionary menginisialisasi dictionary dengan:
+//   1. Setiap kata dasar dijalankan melalui craftMan() untuk
+//      menghasilkan semua varian imbuhan (me-, pe-, di-, dll).
+//   2. Stop words dan false positive dictionary di-load.
+//   3. counting() membangun histogram panjang kata untuk
+//      optimasi IsContainLen.
 func NewDictionary() *Dictionary {
 
 	var words []string
@@ -68,6 +78,14 @@ func NewDictionary() *Dictionary {
 	return new
 }
 
+// counting() membangun histogram panjang kata dari dictionary.
+// Data ini digunakan untuk:
+//   1. IsContainLen() — pre-filter token berdasarkan panjang
+//   2. GetWordsLen() — daftar panjang yang tersedia untuk sliding window
+//   3. Majorty() — panjang kata yang paling umum (debug/analisis)
+//
+// Optimization: histogram ini mencegah map lookup yang tidak perlu
+// di Scan() dengan skip token jika panjangnya tidak ada di dictionary.
 func (d *Dictionary) counting() *Dictionary {
 
 	d.min = 99999

@@ -5,6 +5,13 @@ import (
 	"strings"
 )
 
+// Prefix Indonesia berdasarkan kaidah morfologi:
+//   - meng- → nasal fusion: meng- + kata mulai vokal/k/g/h
+//   - mem- → nasal fusion: mem- + kata mulai b/f/p/v
+//   - men- → nasal fusion: men- + kata mulai c/d/j/s/t
+//
+// Prefix di Scan() digunakan untuk stripping imbuhan
+// dengan prioritas: 4 char → 3 char → 2 char.
 var (
 	vocals = []rune{'a', 'e', 'i', 'o', 'u'}
 
@@ -16,6 +23,8 @@ var (
 	prefixes3 = []string{"ber", "ter", "per", "mem", "pem", "men", "pen"}
 	prefixes4 = []string{"meng", "peng", "peny", "meny"}
 
+	// Suffix Indonesia yang umum untuk validasi affix:
+	// sisa setelah stem bukan suffix → cek isOneSyllable.
 	suffixes = []string{
 		"kan",
 		"an",
@@ -25,7 +34,19 @@ var (
 		"mu",
 	}
 )
-
+// isOneSyllable mengecek apakah string adalah 1 suku kata
+// dalam kaidah Bahasa Indonesia.
+//
+// Digunakan oleh affix detection untuk mencegah false positive:
+// jika sisa setelah stripping prefix/stem adalah tepat 1 suku
+// kata, kemungkinan besar kata sudah berubah makna.
+// Contoh: "babiru" → stem "babi" + sisa "ru" (1 suku kata) → skip
+//
+// Aturan suku kata:
+//   - Maksimal 1 vokal (diftong dihitung 1 vokal)
+//   - Maksimal 3 konsonan sebelum vokal
+//   - Maksimal 3 konsonan setelah vokal
+//   - 'ng' dan 'ny' dihitung 1 konsonan
 func isOneSyllable(s string) bool {
 	if len(s) > 5 || len(s) < 1 {
 		return false
@@ -46,23 +67,19 @@ func isOneSyllable(s string) bool {
 				return false
 			}
 
-			// kalau ketemu vokal dan itu diftong, maka
-			// akan dihitung 1
-			// vocal diftong {ai, au, ei, oi}
+			// Diftong {ai, au, ei, oi} dihitung 1 vokal
 			if i < len(s)-2 || (len(s) == 2 && i == 0) {
 				diftongPair := s[i+1]
 				if (c == 'a' && (diftongPair == 'i' || diftongPair == 'u')) ||
 					(c == 'e' && diftongPair == 'i') ||
 					(c == 'o' && diftongPair == 'i') {
-					// geser cursornya 1 langkah
 					i += 1
 				}
 			}
 			continue
 		}
 
-		// untuk kasus dimana suku kata terdairi dari -ng atau -ny
-		// karena mereka dihitung 1 bentuk konsonan
+		// 'ng' dan 'ny' dihitung 1 konsonan
 		if c == 'n' {
 			if i < len(s)-1 && (s[i+1] == 'g' || s[i+1] == 'y') {
 				i += 1
@@ -78,6 +95,7 @@ func isOneSyllable(s string) bool {
 		if preVocal > 3 || pascaVoal > 3 {
 			return false
 		}
+
 	}
 
 	if vocalFound == 0 {
@@ -238,14 +256,21 @@ func avoidVocalToAbv(s string) []string {
 	return ret
 }
 
+// craftMan menghasilkan varian imbuhan dari kata dasar.
+// Ini adalah optimization: generate semua varian di init,
+// bukan stemming di runtime. Tiap Scan() cukup exact match
+// di dictionary tanpa perlu proses imbuhan ulang.
+//
+// Contoh: "babi" → "babi", "mebabi", "pebabi", "tebabi",
+// "dibabi", "kebabi", "ngbabi", "bebabi" (dll via nasal fusion)
 func craftMan(s string) []string {
 
 	var ret []string
 
-	// kata asli
 	ret = append(ret, s)
 
-	// imbuhan yang melebur, prefix-
+	// Nasal fusion: prefix yang melebur dengan kata dasar
+	// Contoh: "pukul" → "memukul", "pemukul", "mukul"
 	ret = append(ret, nasalFusionWord(s)...)
 
 	return ret

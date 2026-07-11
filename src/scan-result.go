@@ -29,14 +29,20 @@ func (wig *WordIndexGenerator) Yield() *WordIndex {
 	return wig.buff[wig.cur]
 }
 
+// ScanResult adalah hasil dari proses scanning.
+// Ia menyimpan dua versi teks:
+//   - text: teks asli input (preserve huruf besar/kecil)
+//   - praScanText: teks setelah preprocessing (lowercased + sanitized)
+//
+// WordIndex menyimpan posisi start/end tiap kata kotor yang ditemukan,
+// memungkinkan operasi seperti Censor() tanpa perlu scanning ulang.
 type ScanResult struct {
 	specialCharIndex map[int]rune
 
-	// text is the original string of input and will not change
-	// text ini akan di proses dan nilainya di assign ke praScanbaText
 	text string
 
-	// praScanText is the text resulting from the scan process, and this will be used using words
+	// praScanText adalah teks setelah preprocessing (lowercased, sanitasi).
+	// Posisi di WordIndex mengacu ke index rune di praScanText.
 	praScanText string
 	words       []*WordIndex
 }
@@ -45,12 +51,18 @@ func (sr *ScanResult) GetText() string {
 	return sr.text
 }
 
+// Censor() mengganti character kata kotor dengan '*'.
+// Arsitektur: menggunakan precomputed WordIndex dari Scan().
+//
+// Strategi:
+//   1. Replace langsung di []rune praScanText menggunakan
+//      WordIndex (O(1) per kata, tanpa perlu scanning ulang).
+//   2. Jika teks asli punya huruf besar/kecil, petakan kembali
+//      dari teks asli ke teks yang sudah dicensor.
+//   3. Jika teks sudah lowercase semua, tidak perlu mapping.
 func (sr *ScanResult) Censor() string {
 
 	if sr.Count() == 0 {
-		return sr.text
-	}
-	if strings.ToLower(sr.text) == sr.praScanText {
 		return sr.text
 	}
 
@@ -59,6 +71,10 @@ func (sr *ScanResult) Censor() string {
 		for i := w.Start; i <= w.End; i++ {
 			c[i] = '*'
 		}
+	}
+
+	if strings.ToLower(sr.text) == sr.praScanText {
+		return string(c)
 	}
 
 	var (
@@ -75,7 +91,6 @@ func (sr *ScanResult) Censor() string {
 		}
 
 		if s != r[i-diff] {
-			// apakah versi huruf besarnya
 			if math.Abs(float64(s-r[i-diff])) == 32 {
 				sb.WriteRune(s)
 				continue
@@ -84,7 +99,7 @@ func (sr *ScanResult) Censor() string {
 		}
 	}
 
-	return string(c)
+	return sb.String()
 }
 
 func (sr *ScanResult) IsProfane() bool {

@@ -12,9 +12,9 @@ const (
 	WithLeetSpeak
 	UnstackChar
 	// new
-	TrimSpce
+	TrimSpace
 	ReplaceWhiteSpace
-	SanitazeReadSign
+	SanitizeReadSign
 )
 
 type ModalScanConfig struct {
@@ -36,7 +36,16 @@ func New() *Bacot {
 	return &Bacot{Dict: NewDictionary()}
 }
 
-// dengan Defoul setting
+// Text() menjalankan pipeline preprocessing default:
+//   Emoji → ReplaceWhiteSpace → SanitazeReadSign → ReplaceWhiteSpace → UnstackChar → Affix(true)
+//
+// Urutan ini penting karena:
+//   1. Emoji dihapus dulu biar ga jadi noise
+//   2. Tanda baca diganti spasi biar tokenisasi akurat
+//   3. Unstack dilakukan setelah leet speak (default leet tidak aktif, perlu manual)
+//   4. Affix detection aktif default, bisa dimatikan dengan Affix(false)
+//
+// Config() bisa override pipeline ini. Lihat ModalScanConfig.Order.
 func (b *Bacot) Text(s string) *ModalScan {
 	b.modalScan = &ModalScan{
 		affix: true,
@@ -66,10 +75,10 @@ func (b *Bacot) Text(s string) *ModalScan {
 				b.modalScan.WithLeetSpeak()
 			case UnstackChar:
 				b.modalScan.UnstackChar()
-			case TrimSpce:
+			case TrimSpace:
 				b.modalScan.TrimSpace()
-			case SanitazeReadSign:
-				b.modalScan.SanitazeReadSign()
+			case SanitizeReadSign:
+				b.modalScan.SanitizeReadSign()
 			case ReplaceWhiteSpace:
 				b.modalScan.ReplaceWhiteSpace()
 			}
@@ -82,7 +91,7 @@ func (b *Bacot) Text(s string) *ModalScan {
 	b.modalScan.
 		SanitizeEmoji().
 		ReplaceWhiteSpace().
-		SanitazeReadSign().
+		SanitizeReadSign().
 		ReplaceWhiteSpace().
 		UnstackChar().
 		Affix(true)

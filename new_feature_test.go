@@ -37,7 +37,7 @@ func TestSanitizeReadSign(t *testing.T) {
 
 	b := bacot.New()
 
-	txt := b.Raw("jallan-jalan. ke kota|padang, berk^ota k3 sur@baya").SanitazeReadSign().GetText()
+	txt := b.Raw("jallan-jalan. ke kota|padang, berk^ota k3 sur@baya").SanitizeReadSign().GetText()
 	fmt.Println(txt)
 
 	if txt != "jallan jalan  ke kota padang  berkota k3 sur@baya" {

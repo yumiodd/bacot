@@ -4,50 +4,55 @@
 
 *"Mulut lo bacot — tapi bacot filter kata-kata lo."*
 
-Profanity filter untuk Bahasa Indonesia dengan affix detection, leet speak obfuscation, dan unstack character. Zero dependency.
+Profanity filter untuk Bahasa Indonesia dengan affix detection, leet speak, unstack character. Zero dependency.
 
-Bahasa Indonesia aglutinatif — satu kata dasar bisa berubah dengan imbuhan (`babi` → `mebabi`, `pebabi`, `dibabi`, `kebabi`). Bacot handle ini otomatis tanpa perlu daftar semua variasi imbuhan. *Capek kali, masa "babi" doang, "mebabi" juga, "pebabi" lagi.*
-
-## Installation
+Bahasa Indonesia aglutinatif — satu kata dasar bisa berubah dengan berbagai imbuhan (`babi` → `mebabi`, `pebabi`, `dibabi`, `kebabi`). Bacot handle semua varian ini otomatis tanpa perlu daftarin satu-satu.
 
 ```go
-import bacot "github.com/yumiodd/bacot/src"
+b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
+b.Text("babi dan anjing").Collect(true).Scan().Censor() // "**** dan ******"
 ```
 
-Itu aja, gak ada dependency lain. *Kami bukan npm.*
+## Fitur
+
+| Fitur | Contoh | Keterangan |
+|-------|--------|------------|
+| **Affix-aware** | `mebabi`, `penganjing` | Deteksi kata berimbuhan otomatis (default ON) |
+| **Leet speak** | `4njing` → `anjing`, `8abi` → `babi` | 25+ karakter mapping, aktif manual |
+| **Unstack char** | `anjiiing` → `anjing` | Hapus huruf berulang (default ON) |
+| **Recursive scan** | `xbabi` → ketemu | Nyari sampe ke dalam substring |
+| **Two scan modes** | `Scan()` / `RecursiveScan()` | Per word atau sliding window per token |
+| **Collection mode** | `Collect(true)` | Kumpulin semua match atau berhenti di pertama |
+| **Custom dictionary** | `AddWord()`, `DelWord()` | Tambah atau hapus kata kapan aja |
+| **Censor** | `Censor()` → `******` | Replace character berdasarkan posisi |
+| **False positive filter** | "babiru" bukan "babi" | Deteksi 1 suku kata sisa setelah stem |
+| **Zero dependencies** | — | Hanya stdlib Go |
 
 ## Quick Start
 
 ```go
+import bacot "github.com/yumiodd/bacot/src"
+
 b := bacot.New()
 
+// Deteksi + sensor
 res := b.Text("4njiiing").WithLeetSpeak().Scan()
 res.IsProfane() // true
 res.Censor()    // "*******"
 
+// Kumpulin semua match
 res := b.Text("babi dan anjing").Collect(true).Scan()
 res.Count()     // 2
 res.Extract()   // ["babi", "anjing"]
+res.First()     // "babi"
+res.Last()      // "anjing"
 ```
 
-> **Satu** instance untuk banyak scan. Jangan `New()` tiap kali — ini bukan sikat gigi.
-
-## Features
-
-| Feature | Description |
-|---------|-------------|
-| **Affix-aware** | Deteksi kata berimbuhan (`mebabi`, `penganjing`) |
-| **Leet speak** | `4njing` → `anjing`, `8abi` → `babi` |
-| **Unstack char** | `anjiiing` → `anjing` |
-| **Two scan modes** | `Scan()` per-word, `RecursiveScan()` sampe ke dalem |
-| **Custom words** | `AddWord(words...)` |
-| **Censor** | Mapping otomatis leet → `*` |
-| **Zero dependencies** | Hanya stdlib Go |
-| **Collection mode** | Kumpulin semua match sekaligus |
+> **Satu** instance untuk banyak scan. Jangan `New()` tiap kali.
 
 ## Usage
 
-### Basic Detection
+### Detection & Censor
 
 ```go
 res := b.Text("anjing").Scan()
@@ -56,60 +61,29 @@ res.Censor()    // "******"
 res.Extract()   // ["anjing"]
 ```
 
-### Collect All — *"Sekalian Dihajar"*
+### Affix / Imbuhan
 
 ```go
-res := b.Text("babi dan anjing").Collect(true).Scan()
-res.Count()     // 2
-res.Extract()   // ["babi", "anjing"]
+b.Text("mebabi").Scan().IsProfane()      // true (affix default ON)
+b.Text("mebabi").Affix(false).Scan()...  // false
 ```
 
-Default `Collect(false)` — cukup tau satu doang, kayak mantan.
-
-### Custom Words — *"Update Kamus, Update Perasaan"*
-
-```go
-b.AddWord("custombad")           // + varian craftMan
-b.AddWord("pukul")               // + imbuhan otomatis
-```
-
-Istilah baru bermunculan tiap hari? Tambahin aja. *Udah biasa.*
-
-### Affix Mode
-
-```go
-b.Text("mebabi").Scan().IsProfane()      // true (ya jelas)
-b.Text("mebabi").Affix(false).Scan().IsProfane() // false
-```
-
-Di Indonesia, "mebabi" tetaplah "babi". *Jangan munafik.*
-
-### Recursive Scan
-
-Nyari sampe ke substring — buat yang suka nyelipin karakter.
-
-```go
-b.Text("xbabi").RecursiveScan().IsProfane() // true
-```
-
-### Leet Speak & Unstack
-
-Leet speak **tidak aktif** secara default. Aktifkan manual:
+### Leet Speak
 
 ```go
 b.Text("4njing").WithLeetSpeak().Scan().IsProfane() // true
 ```
 
-Unstack character otomatis (hapus huruf berulang):
-
-```go
-b.Text("anjiiing").Scan().IsProfane()   // true (unstack: anjiiing → anjing)
-```
-
-Kombinasi leet + unstack:
+### Unstack + Leet
 
 ```go
 b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
+```
+
+### Recursive Scan
+
+```go
+b.Text("xbabi").RecursiveScan().IsProfane() // true
 ```
 
 ### Trim Space — *"Pake Spasi Biar Lolos?"*
@@ -118,123 +92,70 @@ b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
 b.Text("a n j i n g").TrimSpace().Scan().IsProfane() // true
 ```
 
-*Nice try.*
-
-### Dictionary
+### Config — Sekali Atur
 
 ```go
-b.Dict.Contains("anjing")    // true
-b.Dict.IsStopWord("dan")     // true
-b.Dict.AddWords("custom1", "custom2")
-b.Dict.DelWords("anjing")
-b.Dict.GetDict()             // map[string]struct{}
-```
-
-### Generator / Iterate Results
-
-```go
-gen := res.Generator()
-if w := gen.Yield(); w != nil {
-    fmt.Println(w.Word)
-}
-```
-
-### Config — *"Sekali Atur, Scan Enteng"*
-
-Buat standarisasi pipeline tanpa chaining manual tiap scan pake `ModalScanConfig`.
-**Urutan `Order` penting** — hasil akhir tergantung urutan preprocessing.
-
-```go
-b := bacot.New()
-
 b.Config(&bacot.ModalScanConfig{
     Affix:   true,
     Collect: true,
     Order: []bacot.SanitizeOrder{
-        bacot.WithLeetSpeak,           // 1. leet dulu
-        bacot.UnstackChar,             // 2. baru unstack
+        bacot.WithLeetSpeak,
+        bacot.UnstackChar,
     },
 })
-
-res := b.Text("4njiiing").Scan()
-res.IsProfane() // true (leet + unstack otomatis)
+b.Text("4njiiing").Scan().IsProfane() // true, otomatis
 ```
 
-Urutan di atas: leet dulu (`4` → `a`), baru unstack (hapus huruf berulang).
-Config ini berlaku untuk semua panggilan `Text()` setelahnya sampai dipanggil ulang.
-
-Pipeline yang bisa diatur:
-
-| Order | Fungsi |
-|-------|--------|
-| `bacot.SanitizeNewLine` | Hapus newline |
-| `bacot.TrimSpace` | Hapus spasi antar huruf |
-| `bacot.WithLeetSpeak` | Konversi leet (`4` → `a`, dll) |
-| `bacot.UnstackChar` | Hapus huruf berulang |
-
-Chaining manual tetep jalan kapan aja, dan **gak** terpengaruh config:
+### Dictionary
 
 ```go
-b.Text("4 n j i n g").WithLeetSpeak().TrimSpace().Scan().IsProfane() // true
+b.Dict.AddWords("custom")
+b.Dict.DelWords("anjing")
+b.Dict.Contains("anjing")   // true
+b.Dict.IsStopWord("dan")    // true
 ```
 
-## How It Works
+## Bagaimana Cara Kerjanya
 
 ```
-Input → ToLower → SanitizeNewLine → UnstackChar → [TrimSpace] → Scan / RecursiveScan
-                → [WithLeetSpeak] (manual)
+Input → ToLower → [Sanitize] → Scan → ScanResult ─→ Censor()
+                                                   ├→ IsProfane()
+                                                   ├→ Extract()
+                                                   ├→ Count()
+                                                   └→ Generator()
 ```
 
-### Sliding Window Affix Detection
+**Precomputed WordIndex** — `Scan()` menghitung posisi start/end tiap kata kotor sekali. Operasi setelahnya (`Censor`, `Extract`, `Count`) tinggal pakai data itu tanpa scan ulang.
 
-Kata berimbuhan? Bacot geser-geser kayak lagi swipe Tinder:
+**Length histogram** — token yang panjangnya ga ada di dictionary langsung di-skip sebelum map lookup. Mengurangi operasi yang tidak perlu.
 
-```
-mebabi → ebabi → babi → DITEMUKAN ✅
-```
-
-Setiap posisi `l` diambil substring `w[l:]`, dicocokkan dengan dictionary. Pas ketemu, selesai.
-
-### RecursiveScan
-
-```
-xbabi → babi → DITEMUKAN ✅
-```
-
-Simple. Efektif. *Gak perlu pake ML segala.*
+**Affix detection** — stripping prefix Indonesia (meng-, mem-, men-, ber-, ter-, per-, me-, pe-, di-, dll) dengan validasi nasal fusion. Contoh: `memukul` (p luluh jadi m), `menggali` (g tetap). Ditambah filter false positive: kalau sisa setelah stem cuma 1 suku kata, kemungkinan kata sudah beda makna.
 
 ## Benchmark
 
 Intel i5-13400, Linux, Go 1.26.4.
 
-| Skala | Operasi | Input | Waktu |
-|-------|---------|-------|-------|
-| 🟢 | `Contains` | lookup | **5.7 ns** |
-| 🟢 | `ScanSingleWord` | `"anjing"` | **221 ns** |
-| 🟢 | `Scan` | `"aku suka 4njiiing"` | **531 ns** |
-| 🟢 | `RecursiveScan` | `"aku suka 4njiiing"` | **433 ns** |
-| 🟢 | `Censor` | `"anjing"` | **0.89 ns** |
-| 🟡 | `AddWord` | 1 kata baru | **607 ns** |
-| 🟡 | `ScanParagraph` | 5 kalimat leet+affix | **10.6 µs** |
-| 🟡 | `ScanMixedAffixLeet` | 6 kata campur | **1.3 µs** |
-| 🟡 | `ScanAffixLong` | 20 kata imbuhan | **1.8 µs** |
-| 🔴 | `Scan10Kb` | 1.000 kata | **344 µs** |
-| 🔴 | `RecursiveScan10Kb` | 1.000 kata | **346 µs** |
-| ⚫ | `Scan100Kb` | 100KB lorem | **20 ms** |
-| ⚫ | `RecursiveScanLongSingleWord` | 1 kata 10K char | **744 µs** |
-| ⚫ | `ScanAllProfanity` | 10KB, 4.000 match | **457 µs** |
+| Skala | Operasi | Waktu |
+|-------|---------|-------|
+| 🟢 | `Contains` lookup | 5.7 ns |
+| 🟢 | `Scan` kalimat pendek | 531 ns |
+| 🟢 | `Censor` kata | 0.89 ns |
+| 🟡 | `Scan` paragraf (5 kalimat) | 10.6 µs |
+| 🔴 | `Scan` 10Kb (1000 kata) | 344 µs |
+| 🔴 | `Censor` 10Kb (4000 match) | 172 µs |
+| ⚫ | `Scan` 100Kb | 20 ms |
 
 <details>
-<summary>📊 Raw benchmark data</summary>
+<summary>📊 Detail benchmark</summary>
 
 ```
 goos: linux | goarch: amd64 | cpu: 13th Gen Intel(R) Core(TM) i5-13400
 
 --- RINGAN ---
 Contains-16                     217,744,636    5.711 ns/op       0 B/op    0 allocs/op
-BenchmarkAddWord-16               1,960,904   607.800 ns/op     280 B/op    7 allocs/op
-BenchmarkTextPreprocessing-16     3,364,468   348.700 ns/op     160 B/op    7 allocs/op
-BenchmarkScanSingleWord-16        5,298,542   221.700 ns/op     168 B/op    6 allocs/op
+AddWord-16                        1,960,904   607.800 ns/op     280 B/op    7 allocs/op
+TextPreprocessing-16              3,364,468   348.700 ns/op     160 B/op    7 allocs/op
+ScanSingleWord-16                 5,298,542   221.700 ns/op     168 B/op    6 allocs/op
 Scan-16                           2,273,468   531.400 ns/op     192 B/op    7 allocs/op
 RecursiveScan-16                  2,765,752   433.400 ns/op     192 B/op    7 allocs/op
 Censor-16                      1,000,000,000   0.8916 ns/op       0 B/op    0 allocs/op
@@ -271,22 +192,28 @@ ScanLongSingleWord-16                14,616  81,681 ns/op  93,280 B/op     34 al
 ```
 </details>
 
-**Singkatnya:** Bacot bisa scan ~2 juta kalimat per detik. Bahkan di skenario terberat — 10KB teks, 4.000 kata kasar, 1 kata sepanjang 10K karakter — semuanya masih sub-millisecond. Intel i5 aja nggak kerasa, apalagi server production.
-
 ## FAQ
 
 ### Kodenya sederhana, emang work?
 
-Work. 87 test, 35 benchmark, zero dep. Kadang solusi terbaik ya yang sederhana.
+85 test, 34 benchmark, zero dep. Kadang solusi terbaik ya yang sederhana.
 
 ### Dictionary cuma 190 kata?
 
-Tambahin aja. PR diterima. *Makin kotor makin kita senang.*
+200+ kata dasar. Tapi tiap kata otomatis di-generate varian imbuhannya jadi ribuan (mebabi, pebabi, dibabi, menjing, penganjing, dll). Kalau kurang tinggal `AddWord()`. PR juga diterima.
+
+### Thread safe?
+
+Tidak — no mutex, no sync. Buat instance baru per goroutine, atau bungkus pake `sync.Mutex`.
+
+### Kok ada method typo?
+
+(`TrimSpce`, `SanitazeReadSign`, `Majorty`) — iya. Backward compatibility. Mungkin next major version dibenerin.
 
 ## Credits
 
-- Dictionary: [indonesian-badwords](https://github.com/drizki/indonesian-badwords) *makasih dah ngumpuli*
-- Stop words: [go-sastrawi](https://github.com/truthfulses/go-sastrawi) *pinjem, makasih*
+- Dictionary: [indonesian-badwords](https://github.com/drizki/indonesian-badwords)
+- Stop words: [go-sastrawi](https://github.com/truthfulses/go-sastrawi)
 
 Kontribusi kata kasar baru? Buka aja PR. 😄
 
