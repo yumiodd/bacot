@@ -1,6 +1,7 @@
+![bacot.png](./bacot.png)
 # Bacot
 
-Filter kata kasar untuk Bahasa Indonesia. Zero dependency.
+Filter kata kasar untuk Bahasa Indonesia.
 
 ```
 b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
@@ -9,9 +10,9 @@ b.Text("babi dan anjing").Collect(true).Scan().Censor() // "**** dan ******"
 
 Bahasa Indonesia itu aglutinatif. `babi` bisa jadi `mebabi`, `pebabi`, `dibabi`, `kebabi`, `memperbabikan`. Coba lo handle pake `strings.Contains` sendirian — *good luck, you'll need it.*
 
-Bacot lahir karena capek liat developer nulis regex panjang 20 baris cuma buat deteksi "4njiiing". *Kami sudah melalui masa gelap itu. Kami tidak akan kembali.*
+Bacot lahir karena capek liat developer nulis regex panjang 20 baris cuma buat deteksi "4njiiing". *Kami sudah melalui masa gelap itu (bohong). Kami tidak akan kembali (bohong lagi).*
 
-## Kenapa bukan regex doang?
+## Tidak klise pake regex aja
 
 | Masalah | Contoh | Regex | Bacot |
 |---------|--------|-------|-------|
@@ -27,9 +28,9 @@ Bacot lahir karena capek liat developer nulis regex panjang 20 baris cuma buat d
 import bacot "github.com/yumiodd/bacot/src"
 ```
 
-Nggak ada `go get` 20 kali. Nggak ada `vendor/` penuh misteri. Nggak ada `replace` directive yang bikin lo gregetan.
+Nggak ada `go get` lagi ini itu. ga ada `requirements.txt` instalasi misterius. Zero dep (*untuk sekarang*)
 
-*Ini Go, bukan Node.js.*
+*kami bukan python*
 
 ## Quick Start
 
@@ -157,7 +158,7 @@ Intel i5-13400, Linux, Go 1.26.4.
 | Berat | `Censor` 10Kb (4000 match) | 172 µs |
 | Ekstrim | `Scan` 100Kb lorem | 20 ms |
 
-*"2 juta kalimat per detik."* — kata siapa? Benchmark bilang gitu. Intel i5 aja nggak kerasa, apalagi server production lo.
+*"2 juta kalimat per detik."* — 
 
 <details>
 <summary>📊 Raw benchmark — buat yang demen angka</summary>
@@ -209,21 +210,14 @@ ScanLongSingleWord-16                14,616  81,681 ns/op  93,280 B/op     34 al
 ## FAQ
 
 **Dictionary cuma 200 kata?**  
-200+ kata dasar. Tiap kata dasar generate varian imbuhan — jadinya ribuan. Kurang? `AddWord()`. Atau buka PR. *Makin kotor makin kita senang.*
+200+ kata dasar. Tiap kata dasar generate varian imbuhan — jadinya ribuan. Kurang? `AddWord()`. Atau buka PR. *Makin kotor makin kita senang.*,
+gunakan `AddFalsePosive()` untuk menambal kesalahan *hehe*
 
 **Thread safe?**  
-Enggak. `Bacot` pake pointer sharing. Lo mau pake di banyak goroutine? Buat instance baru tiap goroutine atau bungkus `sync.Mutex`. *Kami serahkan pada kebijaksanaan lo.*
-
-**Kok ada typo di nama method?**  
-(`TrimSpce`, `SanitazeReadSign`, `Majorty`) — iya. Ini legacy. Backward compatibility. Kapan-kapan di-major version fix. Atau — *lo bisa benerin sendiri trus buka PR. Kami nggak gigit.*
+Enggak. `Bacot` pake pointer sharing. Lo mau pake di banyak goroutine? Buat instance baru tiap goroutine atau bungkus `sync.Mutex`. *nekad, resiko tanggung sendiri*
 
 **Cocok buat production?**  
-85 test, 34 benchmark, zero dep. Udah dipake. Nggak bakal nyebabin outage. Kalaupun ada yang lolos, tinggal tambahin dictionary.
-
-## Credits
-
-- Dictionary: [indonesian-badwords](https://github.com/drizki/indonesian-badwords)
-- Stop words: [go-sastrawi](https://github.com/truthfulses/go-sastrawi)
+Well coba aja dulu.
 
 ## License
 

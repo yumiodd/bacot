@@ -221,3 +221,9 @@ func (d *Dictionary) IsFalsePositive(s string) bool {
 
 	return false
 }
+
+func (d *Dictionary) AddFalsePositif(words ...string) {
+	for _, w := range words {
+		d.falsePositives[strings.ToLower(w)] = struct{}{}
+	}
+}

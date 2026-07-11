@@ -37,7 +37,7 @@ func New() *Bacot {
 }
 
 // Text() menjalankan pipeline preprocessing default:
-//   Emoji → ReplaceWhiteSpace → SanitazeReadSign → ReplaceWhiteSpace → UnstackChar → Affix(true)
+//   Emoji → ReplaceWhiteSpace → SanitizeReadSign → ReplaceWhiteSpace → UnstackChar → Affix(true)
 //
 // Urutan ini penting karena:
 //   1. Emoji dihapus dulu biar ga jadi noise
