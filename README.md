@@ -31,8 +31,8 @@ func main() {
 	// "**** dan ******"
 
 	// Ekstrak: siapa aja yang kena?
-	res := b.Text("asu babi kontol").Collect(true).Scan()
-	res.Extract() // ["asu", "babi", "kontol"]
+	res := b.Text("asu babi bacot").Collect(true).Scan()
+	res.Extract() // ["asu", "babi", "bacot"]
 	res.Count()   // 3
 }
 ```
