@@ -34,7 +34,7 @@ func isOneSyllable(s string) bool {
 	var (
 		preVowel   = 0
 		vowelFound = 0
-		pascaVowel = 0
+		postVowel = 0
 	)
 	for i := 0; i < len(s); i++ {
 		c := rune(s[i])
@@ -70,12 +70,12 @@ func isOneSyllable(s string) bool {
 		}
 
 		if vowelFound > 0 {
-			pascaVowel += 1
+			postVowel += 1
 		} else {
 			preVowel += 1
 		}
 
-		if preVowel > 3 || pascaVowel > 3 {
+		if preVowel > 3 || postVowel > 3 {
 			return false
 		}
 	}
@@ -144,7 +144,7 @@ func nasalFusionWord(s string) []string {
 
 	return ret
 }
-func dyamicVocalAlteration(s string) []string {
+func dynamicVowelAlteration(s string) []string {
 
 	s = strings.ToLower(s)
 	sr := []rune(s)
@@ -189,7 +189,7 @@ func dyamicVocalAlteration(s string) []string {
 	return ret
 }
 
-func consonanForEmphasis(s string) []string {
+func consonantForEmphasis(s string) []string {
 
 	// contoh: tai -> taik, asu - > asuk, puki -> pukik
 	// note: mempertimbangan menambah penekanan 'g'
@@ -232,7 +232,7 @@ func consonanForEmphasis(s string) []string {
 // 	return ret
 // }
 
-func avoidVocalToAbv(s string) []string {
+func avoidVowelToAbbrev(s string) []string {
 
 	var ret []string
 	return ret

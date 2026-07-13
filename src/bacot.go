@@ -126,6 +126,6 @@ func (b *Bacot) DelWord(words ...string) *Bacot {
 }
 
 func (b *Bacot) AddFalsePositive(words ...string) *Bacot {
-	b.Dict.AddFalsePositif(words...)
+	b.Dict.AddFalsePositive(words...)
 	return b
 }

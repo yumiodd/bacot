@@ -1,62 +1,75 @@
-[English Version](./readme.en.md) 
+![test](./bacot.png)
+
+- [English Version](./readme.en.md)
 
 # Bacot
+Library Go untuk deteksi kata kotor Bahasa Indonesia. Ringan, cepet, paham imbuhan, zero dependency.
 
-Filter kata kasar / profanity khusus Bahasa Indonesia. Ringan, cepat, zero dependency, dan **affix-aware**.
 
 ## Instalasi
 
 ```go
-import bacot "github.com/yumiodd/bacot/src"
+go get -u github.com/yumiodd/bacot/src
 ```
 
 ## Penggunaan
 
 ```go
-b := bacot.New()
+package main
 
-// Deteksi
-b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
+import bacot "github.com/yumiodd/bacot/src"
 
-// Sensor
-b.Text("babi dan anjing").Collect(true).Scan().Censor() // "**** dan ******"
+func main() {
+	b := bacot.New()
 
-// Ekstrak
-res := b.Text("babi dan anjing asu kontol").Collect(true).Scan()
-res.Count()   // 4
-res.Extract() // ["babi", "anjing", "asu", "kontol"]
-res.First()   // "babi"
+	// Cek: kasar apa nggak?
+	b.Text("mebabi").Scan().IsProfane()     // true
+	b.Text("kelas").Scan().IsProfane()      // false
+
+	// Sensor: biar keliatan sopan
+	b.Text("babi dan anjing").Collect(true).Scan().Censor()
+	// "**** dan ******"
+
+	// Ekstrak: siapa aja yang kena?
+	res := b.Text("asu babi kontol").Collect(true).Scan()
+	res.Extract() // ["asu", "babi", "kontol"]
+	res.Count()   // 3
+}
 ```
+**Catatan: `New()` itu berat** karena precompute semua varian imbuhan. Panggil sekali aja, simpan sebagai singleton, jangan bikin baru tiap request.
 
-## Kenapa Bacot?
+## Kenalan
 
-| Masalah | Contoh | Library lain | Bacot |
-|---------|--------|-------------|-------|
-| Imbuhan | `mebabi`, `penganjing` | bikin pattern tiap imbuhan | **otomatis** |
-| Leet speak | `4njing`, `k0nt0l` | regex tak berujung | built-in |
-| Karakter berulang | `anjiiiiing` | per-kata regex | otomatis |
-| False positive | `babiru` bukan `babi` | manual exception | sudah di-handle |
-| Kecepatan | Sensor 10Kb | 5-20ms | **172µs** |
+| Masalah | Contoh | Bacot |
+|---------|--------|-------|
+| Imbuhan | `mebabi` | Sok pake imbuhan? ketauan `babi`-nya |
+| Leet speak | `4njing` | Ganti angka percuma, tetep kecium |
+| Stack karakter | `anjiiiiing` | Udah di-unstack, tetep `anjing` |
+| False positive | `babiru` | `ru` bukan suffix, skip (OK) |
+| Suffix valid | `memakan` | stem `makan` + suffix `-an`, valid (OK) |
+| Speed | Sensor 10Kb | **172 microsecond** |
 
 ## Fitur
 
-### Affix-aware — keunggulan utama
+### Affix-aware -- senjata utama
 
-Bacot paham imbuhan Indonesia secara native. `mebabi` → `me-` + `babi`. `penganjing` → `peng-` + `anjing`. Tanpa pattern manual.
-
-Imbuhan yang didukung: `me-`, `pe-`, `di-`, `te-`, `be-`, `ber-`, `ter-`, `per-`, `meng-`, `peng-`, `men-`, `pen-`, `meny-`, `peny-`, `mem-`, `pem-`, `ng-`, `ny-`.
-
-Plus **nasal fusion**: `memukul` = `mem-` + `pukul` (p luluh). Kamus cukup berisi `pukul`.
+Bacot paham imbuhan Indonesia native. Nggak perlu bikin pattern manual.
 
 ```go
-b.Text("mebabi").Scan().IsProfane()      // true
-b.Text("mebabi").Affix(false).Scan()...  // false — exact match saja
+b.Text("mebabi").Scan().IsProfane()        // true
+b.Text("penganjing").Scan().IsProfane()    // true
+b.Text("dimakani").Scan().IsProfane()      // true -- di-makan-i
+b.Text("mebabi").Affix(false).Scan()...    // false -- exact match aja
 ```
 
-### Leet speak
+Prefix yang didukung: `me-`, `pe-`, `di-`, `te-`, `be-`, `ber-`, `ter-`, `per-`, `meng-`, `peng-`, `men-`, `pen-`, `meny-`, `peny-`, `mem-`, `pem-`, `ng-`, `ny-`.
+
+Plus **nasal fusion**: `memukul` = `mem-` + `pukul`. Kamus isi `pukul`, Bacot ngerti sendiri.
+
+### Leet speak -- pura-pura pake angka
 
 ```go
-b.Text("4njing").WithLeetSpeak().Scan().IsProfane() // true
+b.Text("4njing").WithLeetSpeak().Scan().IsProfane() // true -- nice try
 ```
 
 ### Unstack char
@@ -67,7 +80,7 @@ b.Text("anjiiiiing").Scan().IsProfane() // true
 
 ### Recursive scan
 
-Mendeteksi substring di dalam token. `"xbabi"` → scan tiap posisi → ketemu `"babi"`.
+Mendeteksi kata kotor yang nempel di substring. `xbabi` tetap ketemu `babi`.
 
 ```go
 b.Text("xbabi").RecursiveScan().IsProfane() // true
@@ -76,10 +89,35 @@ b.Text("xbabi").RecursiveScan().IsProfane() // true
 ### Kamus kustom
 
 ```go
-b.AddWord("setan")     // otomatis generate semua varian imbuhan
-b.Dict.DelWords("anjing")
-b.AddFalsePositive("kelas") // cegah false match pada "kelas"
+b.AddWord("setan")              // varian imbuhan digenerate otomatis
+b.Dict.DelWords("anjing")       // hapus dari kamus
+b.AddFalsePositive("kelas")     // cegah false match
 ```
+
+## Konfigurasi
+
+Pipeline bisa diatur sendiri lewat `ModalScanConfig`:
+
+```go
+b.Config(&bacot.ModalScanConfig{
+	Affix:   false,    // exact match aja
+	Collect: true,     // kumpulin semua
+	Order: []bacot.SanitizeOrder{
+		bacot.WithLeetSpeak,
+		bacot.UnstackChar,
+	},
+})
+```
+
+Default pipeline: `Emoji -> ReplaceWhiteSpace -> SanitizeReadSign -> ReplaceWhiteSpace -> UnstackChar -> Affix(true)`
+
+## Cara kerja
+
+1. **Varian imbuhan precomputed** -- pas `New()`, semua kata dasar + varian `me-`, `ber-`, `meng-`, dll udah masuk map. Scan = O(1) lookup. Nggak ada stemming di runtime.
+
+2. **Length histogram pre-filter** -- kalau dictionary cuma punya kata 3-8 karakter, token 11 karakter langsung di-skip tanpa lookup.
+
+3. **False positive filter** -- sisa stripping dicek: kalau suffix dikenal (`-kan`, `-an`, `-i`, `-nya`) dianggap valid. Cuma sisa non-suffix <=1 suku kata yang di-skip (`babiru` -> `ru`).
 
 ## Benchmark
 
@@ -87,13 +125,7 @@ b.AddFalsePositive("kelas") // cegah false match pada "kelas"
 |---------|-------|
 | Cek kata | ~6 ns |
 | Scan kalimat | ~531 ns |
-| Sensor 10Kb | ~172 µs |
-
-## Cara kerja
-
-1. **Varian imbuhan di-generate di awal** — semua bentuk berimbuhan dibuat saat `New()`. Scan = pencarian exact di map. Tanpa stemming di runtime.
-2. **Histogram panjang kata** — pre-filter: skip token yang panjangnya tidak ada di kamus. O(log n).
-3. **Filter false positive** — jika sisa stem ≤1 suku kata, kemungkinan bukan imbuhan beneran. `"babiru"` → stem `"babi"` → sisa `"ru"` → skip.
+| Sensor 10Kb | ~172 us |
 
 ## Lisensi
 

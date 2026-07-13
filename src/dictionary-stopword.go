@@ -49,7 +49,7 @@ var defaultStopWords = []string{
 	"bagaimana",
 	"bagaimanakah",
 	"bagaimanapun",
-	"bagainamakah",
+	"bagaimanakah",
 	"bagi",
 	"bagian",
 	"bahkan",

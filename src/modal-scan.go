@@ -114,12 +114,14 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// Contoh: "mengikat" → prevChar 'g' ✅
 					//          "mengeja" → prevChar 'n' ❌
 					if slices.Contains(vocals, rune(word[0])) && !(prevChar == 'g' || prevChar == 'r' || prevChar == 'n') {
-						continue
+						if prevChar != ' ' {
+							continue
+						}
 					}
 
 					// Koreksi over-stripping:
 					// "memakan" → strip "mem-" → "akan"
-					// Tapi kata asli adalah "makan". Cek juga w[2:] = "emakan".
+					// Tapi kata asli adalah "makan". Cek juga w[2:] = "makan".
 					if prevChar == 'm' && word[0] == 'm' && ms.dict.Contains(w[2:]) {
 						found = true
 						break
@@ -130,14 +132,8 @@ func (ms *ModalScan) Scan() *ScanResult {
 					// berubah makna. Contoh: "babiru" → "babi" + "ru"
 					// "ru" adalah 1 suku kata → bukan "babi" ❌
 					rest := wTemp[r:]
-					if rest != "" {
-						if !slices.Contains(suffixes, rest) {
-							continue
-						}
-
-						if isOneSyllable(rest) {
-							continue
-						}
+					if rest != "" && !slices.Contains(suffixes, rest) && isOneSyllable(rest) {
+						continue
 					}
 
 					found = true
@@ -273,7 +269,7 @@ func (ms *ModalScan) WithLeetSpeak() *ModalScan {
 
 	var sb strings.Builder
 	for _, c := range ms.text {
-		if r, ok := simpleLeetSpeaks[c]; ok {
+		if r, ok := simpleLeetSpeak[c]; ok {
 			sb.WriteRune(r)
 			continue
 		}

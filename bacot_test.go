@@ -170,8 +170,8 @@ func TestDictionaryMetrics(t *testing.T) {
 	if b.Dict.Max() < b.Dict.Min() {
 		t.Error("Max() should be >= Min()")
 	}
-	if b.Dict.Majorty() <= 0 {
-		t.Error("Majorty() should be positive")
+	if b.Dict.Majority() <= 0 {
+		t.Error("Majority() should be positive")
 	}
 	if len(b.Dict.GetWordsLen()) == 0 {
 		t.Error("GetWordsLen() should not be empty")

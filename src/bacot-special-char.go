@@ -1,7 +1,7 @@
 package bacot
 
 var (
-	advanceLeetSpeaks = map[rune]struct{}{
+	advancedLeetSpeak = map[rune]struct{}{
 		'-': {},
 		'_': {},
 		'|': {},
@@ -19,7 +19,7 @@ var (
 		'?': {},
 	}
 
-	simpleLeetSpeaks = map[rune]rune{
+	simpleLeetSpeak = map[rune]rune{
 		'4': 'a',
 		'@': 'a',
 		'8': 'b',

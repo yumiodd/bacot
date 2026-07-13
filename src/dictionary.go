@@ -18,7 +18,7 @@ func NewDictWord(words ...string) DictWords {
 }
 
 type CraftManConfig struct {
-	PrefixNassalFusion bool
+	PrefixNasalFusion bool
 }
 
 type Dictionary struct {
@@ -40,7 +40,7 @@ func (d *Dictionary) Min() int {
 func (d *Dictionary) Max() int {
 	return d.max
 }
-func (d *Dictionary) Majorty() int {
+func (d *Dictionary) Majority() int {
 	return d.majority
 }
 func (d *Dictionary) IsContainLen(n int) bool {
@@ -222,7 +222,7 @@ func (d *Dictionary) IsFalsePositive(s string) bool {
 	return false
 }
 
-func (d *Dictionary) AddFalsePositif(words ...string) {
+func (d *Dictionary) AddFalsePositive(words ...string) {
 	for _, w := range words {
 		d.falsePositives[strings.ToLower(w)] = struct{}{}
 	}

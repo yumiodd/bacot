@@ -1,55 +1,68 @@
+![test](bacot.png)
 # Bacot
 
-Profanity filter for Indonesian language. Lightweight, fast, zero dependency, and **affix-aware**.
+Profanity filter for Indonesian language. Lightweight, fast, affix-aware, zero dependency.
 
 ## Installation
 
 ```go
-import bacot "github.com/yumiodd/bacot/src"
+go get -u github.com/yumiodd/bacot/src
 ```
 
 ## Usage
 
 ```go
-b := bacot.New()
+package main
 
-// Detection
-b.Text("4njiiing").WithLeetSpeak().Scan().IsProfane() // true
+import bacot "github.com/yumiodd/bacot/src"
 
-// Censor
-b.Text("babi dan anjing").Collect(true).Scan().Censor() // "**** dan ******"
+func main() {
+	b := bacot.New()
 
-// Extract
-res := b.Text("babi dan anjing asu kontol").Collect(true).Scan()
-res.Count()   // 4
-res.Extract() // ["babi", "anjing", "asu", "kontol"]
-res.First()   // "babi"
+	// Check: is it profane?
+	b.Text("mebabi").Scan().IsProfane()     // true
+	b.Text("kelas").Scan().IsProfane()      // false
+
+	// Censor: make it presentable
+	b.Text("babi dan anjing").Collect(true).Scan().Censor()
+	// "**** dan ******"
+
+	// Extract: who's being toxic?
+	res := b.Text("asu babi kontol").Collect(true).Scan()
+	res.Extract() // ["asu", "babi", "kontol"]
+	res.Count()   // 3
+}
 ```
+**Note: `New()` is heavy** because it precomputes all affix variants. Call it once and keep it as a singleton -- don't create a new instance per request.
 
-## Why Bacot?
 
-| Problem | Example | Other libs | Bacot |
-|---------|---------|-----------|-------|
-| Affix (prefix/suffix) | `mebabi`, `penganjing` | manual pattern per affix | **automatic** |
-| Leet speak | `4njing`, `k0nt0l` | endless regex | built-in |
-| Repeated chars | `anjiiiiing` | per-word regex | automatic |
-| False positive | `babiru` ≠ `babi` | manual exceptions | handled |
-| Speed | 10Kb censor | 5-20ms | **172µs** |
+## Quick overview
+
+| Problem | Example | Bacot says |
+|---------|---------|------------|
+| Affix | `mebabi` | Nice try, still `babi` underneath |
+| Leet speak | `4njing` | Numbers won't save you |
+| Repeated chars | `anjiiiiing` | De-stacked, still `anjing` |
+| False positive | `babiru` | `ru` isn't a suffix, skip (OK) |
+| Valid suffix | `memakan` | stem `makan` + suffix `-an`, legit (OK) |
+| Speed | 10Kb censor | **172 microseconds** |
 
 ## Features
 
-### Affix-aware — the main advantage
+### Affix-aware -- the main weapon
 
-Bacot understands Indonesian affixes natively. `mebabi` → `me-` + `babi`. `penganjing` → `peng-` + `anjing`. No manual patterns needed.
-
-Supported affixes: `me-`, `pe-`, `di-`, `te-`, `be-`, `ber-`, `ter-`, `per-`, `meng-`, `peng-`, `men-`, `pen-`, `meny-`, `peny-`, `mem-`, `pem-`, `ng-`, `ny-`.
-
-Plus **nasal fusion**: `memukul` = `mem-` + `pukul` (p dropped). Dictionary only needs `pukul`.
+Bacot understands Indonesian affixes natively. No manual regex patterns needed.
 
 ```go
-b.Text("mebabi").Scan().IsProfane()      // true
-b.Text("mebabi").Affix(false).Scan()...  // false — exact match only
+b.Text("mebabi").Scan().IsProfane()        // true
+b.Text("penganjing").Scan().IsProfane()    // true
+b.Text("dimakani").Scan().IsProfane()      // true -- di-makan-i
+b.Text("mebabi").Affix(false).Scan()...    // false -- exact match only
 ```
+
+Supported prefixes: `me-`, `pe-`, `di-`, `te-`, `be-`, `ber-`, `ter-`, `per-`, `meng-`, `peng-`, `men-`, `pen-`, `meny-`, `peny-`, `mem-`, `pem-`, `ng-`, `ny-`.
+
+Plus **nasal fusion**: `memukul` = `mem-` + `pukul`. Dictionary only needs `pukul`.
 
 ### Leet speak
 
@@ -65,7 +78,7 @@ b.Text("anjiiiiing").Scan().IsProfane() // true
 
 ### Recursive scan
 
-Detects substrings inside tokens. `"xbabi"` → scan every position → finds `"babi"`.
+Detects profanities embedded inside substrings. `xbabi` still catches `babi`.
 
 ```go
 b.Text("xbabi").RecursiveScan().IsProfane() // true
@@ -74,10 +87,35 @@ b.Text("xbabi").RecursiveScan().IsProfane() // true
 ### Custom dictionary
 
 ```go
-b.AddWord("setan")     // auto-generates all affix variants
-b.Dict.DelWords("anjing")
-b.AddFalsePositive("kelas") // prevent false match on "kelas"
+b.AddWord("setan")              // auto-generates all affix variants
+b.Dict.DelWords("anjing")       // remove from dictionary
+b.AddFalsePositive("kelas")     // prevent false match
 ```
+
+## Configuration
+
+Customize the preprocessing pipeline via `ModalScanConfig`:
+
+```go
+b.Config(&bacot.ModalScanConfig{
+	Affix:   false,    // exact match only
+	Collect: true,     // collect all matches
+	Order: []bacot.SanitizeOrder{
+		bacot.WithLeetSpeak,
+		bacot.UnstackChar,
+	},
+})
+```
+
+Default pipeline: `Emoji -> ReplaceWhiteSpace -> SanitizeReadSign -> ReplaceWhiteSpace -> UnstackChar -> Affix(true)`
+
+## How it works
+
+1. **Precomputed affix variants** -- at `New()`, all root words plus their `me-`, `ber-`, `meng-` variants are generated into a map. Scan = O(1) map lookup. No runtime stemming overhead.
+
+2. **Length histogram pre-filter** -- if the dictionary only has words of length 3-8, an 11-character token is skipped immediately without a lookup.
+
+3. **False positive filter** -- after prefix stripping, the remainder is checked: known suffixes (`-kan`, `-an`, `-i`, `-nya`) are considered valid. Only non-suffix remainders <=1 syllable are skipped (`babiru` -> `ru`).
 
 ## Benchmark
 
@@ -85,13 +123,7 @@ b.AddFalsePositive("kelas") // prevent false match on "kelas"
 |-----------|------|
 | Check word | ~6 ns |
 | Scan sentence | ~531 ns |
-| Censor 10Kb | ~172 µs |
-
-## How it works
-
-1. **Precomputed affix variants** — all affixed forms generated at `New()`. Scan = exact map lookup. No runtime stemming.
-2. **Length histogram** — pre-filter: skip tokens with no matching length in dictionary. O(log n).
-3. **False positive filter** — if stem remainder ≤1 syllable, it's likely not a real affix. `"babiru"` → stem `"babi"` → remainder `"ru"` → skip.
+| Censor 10Kb | ~172 us |
 
 ## License
 
