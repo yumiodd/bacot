@@ -44,7 +44,7 @@ func main() {
 | Leet speak | `4njing` | Numbers won't save you |
 | Repeated chars | `anjiiiiing` | De-stacked, still `anjing` |
 | False positive | `babiru` | `ru` isn't a suffix, skip (OK) |
-| Valid suffix | `memakan` | stem `makan` + suffix `-an`, legit (OK) |
+| Valid suffix | `memakan` | stem preffix `me`+`makan`, clean, skip (OK) |
 | Speed | 10Kb censor | **172 microseconds** |
 
 ## Features
@@ -56,7 +56,7 @@ Bacot understands Indonesian affixes natively. No manual regex patterns needed.
 ```go
 b.Text("mebabi").Scan().IsProfane()        // true
 b.Text("penganjing").Scan().IsProfane()    // true
-b.Text("dimakani").Scan().IsProfane()      // true -- di-makan-i
+b.Text("dimakani").Scan().IsProfane()      // false -- di-makan-i
 b.Text("mebabi").Affix(false).Scan()...    // false -- exact match only
 ```
 

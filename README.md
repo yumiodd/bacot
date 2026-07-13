@@ -46,7 +46,7 @@ func main() {
 | Leet speak | `4njing` | Ganti angka percuma, tetep kecium |
 | Stack karakter | `anjiiiiing` | Udah di-unstack, tetep `anjing` |
 | False positive | `babiru` | `ru` bukan suffix, skip (OK) |
-| Suffix valid | `memakan` | stem `makan` + suffix `-an`, valid (OK) |
+| Suffix valid | `memakan` | stem preffix `me`+`makan`, bersih, skip (OK) |
 | Speed | Sensor 10Kb | **172 microsecond** |
 
 ## Fitur
@@ -58,7 +58,7 @@ Bacot paham imbuhan Indonesia native. Nggak perlu bikin pattern manual.
 ```go
 b.Text("mebabi").Scan().IsProfane()        // true
 b.Text("penganjing").Scan().IsProfane()    // true
-b.Text("dimakani").Scan().IsProfane()      // true -- di-makan-i
+b.Text("dimakani").Scan().IsProfane()      // false -- di-makan-i
 b.Text("mebabi").Affix(false).Scan()...    // false -- exact match aja
 ```
 
